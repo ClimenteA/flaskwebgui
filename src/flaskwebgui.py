@@ -35,6 +35,15 @@ class FlaskUI:
 
         self.flask_thread.start()
         self.browser_thread.start()
+        
+        #Wait for the browser to run (1 min)
+        count = 0
+        while not self.browser_runs():
+            time.sleep(1)
+            if count > 60:
+                break
+            count += 1
+
         self.close_flask_thread.start()
 
         self.browser_thread.join()
