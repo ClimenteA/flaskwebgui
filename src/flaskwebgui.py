@@ -29,8 +29,6 @@ class FlaskUI:
     def run(self):
         """
             Start the flask and gui threads instantiated in the constructor func
-            Here is the issue...
-            If I close the gui/browser the flask server doesn't stop.. 
         """
 
         self.flask_thread.start()
