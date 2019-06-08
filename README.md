@@ -45,8 +45,8 @@ Place the portable Chromium app next to main.py file.
 
 ```
 pyinstaller main.py
-pyinstaller --no-console main.py
-pyinstaller --onefile --no-console main.py
+pyinstaller --noconsole main.py
+pyinstaller --onefile --noconsole main.py
 ```
 
 ### Credits
