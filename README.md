@@ -15,7 +15,7 @@ app = Flask(__name__)
 ui = FlaskUI(app) # Feed it the flask app instance
 
 
-# do your logic as ususal in Flask
+# do your logic as usual in Flask
 
 @app.route("/")
 def index():  
@@ -31,20 +31,22 @@ Default FlaskUI class parameters:
 
 * app - required, flask app instance
 * browser_name="chrome" - default it looks for chrome, you can use "firefox", but it doesn't have app mode..
-* browser_path="" - default is "", but you can put a path to browser exe and it will run that  
+* browser_path="" - default is "", full path to browser exe, ex: "C:/browser_folder/chrome.exe"  
 * localhost="http://127.0.0.1:5000" - default url where the browser will go
 <br>
 You can use a portable version of Chrome!
 <br>
 Download Chromium portable from -> https://chromium.woolyss.com/
 <br>
-Place the portable Chromium app next to main.py file and rename the folder containing it > "chrome". 
+Place the portable Chromium app next to main.py file.
 <br>
 
 ### Distribution
 
 ```
 pyinstaller main.py
+pyinstaller --no-console main.py
+pyinstaller --onefile --no-console main.py
 ```
 
 ### Credits
