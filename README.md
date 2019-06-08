@@ -5,7 +5,7 @@ Freeze web apps made in Flask as desktop apps with flaskwebgui and pyinstaller
 ```
 pip install flaskwebgui
 ```
-### Quickstart
+### Usage
 ```
 from flask import Flask  
 from flaskwebgui import FlaskUI #get the FlaskUI class
@@ -29,10 +29,14 @@ ui.run() # call the 'run' method from the FlaskUI instance
 
 Default FlaskUI class parameters: 
 
-* app - required, flask app instance
-* browser_name="chrome" - default it looks for chrome, you can use "firefox", but it doesn't have app mode..
-* browser_path="" - default is "", full path to browser exe, ex: "C:/browser_folder/chrome.exe"  
-* localhost="http://127.0.0.1:5000" - default url where the browser will go
+        * app,                              ==> flask  class instance
+        * browser_name="chrome",            ==> name of the browser "chrome" or "firefox"
+        * browser_path="",                  ==> full path to browser exe, ex: "C:/browser_folder/chrome.exe"
+        * localhost="http://127.0.0.1:5000" ==> specify other if needed
+        * executable_name                   ==> the executable "main.py" will be "main.exe" after freezing (needed to close the exe)
+        * width=800                         ==> default width 800 
+        * height=600                        ==> default height 600
+
 <br>
 You can use a portable version of Chrome!
 <br>
@@ -45,8 +49,7 @@ Place the portable Chromium app next to main.py file.
 
 ```
 pyinstaller main.py
-pyinstaller --noconsole main.py
-pyinstaller --onefile --noconsole main.py
+
 ```
 
 ### Credits
