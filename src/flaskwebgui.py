@@ -14,10 +14,12 @@ class FlaskUI:
         browser_name="chrome",            ==> name of the browser "chrome" or "firefox"
         browser_path="",                  ==> full path to browser exe, ex: "C:/browser_folder/chrome.exe"
         localhost="http://127.0.0.1:5000" ==> specify other if needed
-
+        executable_name                   ==> the executable "main.py" will be "main.exe" after freezing
+        width=800                         ==> default width 800 
+        height=600                        ==> default height 600
     """
 
-    def __init__(self, app, browser_name="chrome", browser_path="", localhost="http://127.0.0.1:5000"):
+    def __init__(self, app, browser_name="chrome", browser_path="", localhost="http://127.0.0.1:5000", executable_name="", width=800, height=600):
         self.flask_app = app
         self.flask_thread = Thread(target=self.run_flask)
         self.browser_thread = Thread(target=self.open_browser)
@@ -25,6 +27,9 @@ class FlaskUI:
         self.browser_name = browser_name
         self.browser_path = browser_path
         self.localhost = localhost
+        self.executable_name = executable_name
+        self.width = str(width)
+        self.height= str(height)
 
     def run(self):
         """
@@ -94,11 +99,8 @@ class FlaskUI:
             if self.browser_name == "firefox":
                 sps.Popen([browser_path, self.localhost], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
             elif "chrome.exe" in browser_path:
-                sps.Popen([browser_path, '--app={}'.format(self.localhost)], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-
+                sps.Popen([browser_path, '--app={}'.format(self.localhost), "--window-size={},{}".format(self.width, self.height)], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
-            print("browser_name = ", self.browser_name)
-            print("browser_path = ", self.browser_path)
             raise Exception("Can't open the browser specified!")
     
     def browser_runs(self):
@@ -114,12 +116,15 @@ class FlaskUI:
             return False
 
 
-    def kill_python(self):
+    def kill_service(self):
         """
-            Close all python processes
+            Close all python/background processes
         """
+
+        proc_name = "main.exe" if self.executable_name == ""  else self.executable_name
+
         for proc in psutil.process_iter():
-            if proc.name() == "python.exe":
+            if proc.name() == proc_name or proc.name() == "python.exe":
                 proc.kill()
 
 
@@ -131,7 +136,7 @@ class FlaskUI:
         while self.browser_runs():
             time.sleep(1)
 
-        self.kill_python()
+        self.kill_service()
 
         
 
