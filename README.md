@@ -5,7 +5,7 @@ Freeze web apps made in Flask as desktop apps with flaskwebgui and pyinstaller
 ```
 pip install flaskwebgui
 ```
-### Usage
+### Quickstart
 ```
 from flask import Flask  
 from flaskwebgui import FlaskUI #get the FlaskUI class
