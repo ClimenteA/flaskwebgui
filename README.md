@@ -51,6 +51,8 @@ Place the portable Chromium app next to main.py file.
 pyinstaller main.py
 
 ```
+You can distribute it with [pyvan](https://github.com/ClimenteA/pyvan) also.
+
 
 ### Credits
 
