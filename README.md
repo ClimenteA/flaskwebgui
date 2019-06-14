@@ -1,5 +1,5 @@
 # flaskwebgui
-Freeze web apps made in Flask as desktop apps with flaskwebgui and pyvan 
+Create desktop applications with Flask!
 
 ### Install
 ```
