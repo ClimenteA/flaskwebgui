@@ -11,8 +11,8 @@ with open("README.md", "r") as fh:
 
 setup (
 	name="flaskwebgui",
-	version="0.0.5",
-	description="Freeze web apps made in Flask as desktop apps with flaskwebgui and pyinstaller",
+	version="0.0.6",
+	description="Freeze web apps made in Flask as desktop apps with flaskwebgui and pyvan",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
 	author_email="climente.alin@gmail.com",

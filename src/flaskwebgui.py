@@ -6,30 +6,34 @@ from threading import Thread
 
 class FlaskUI:
     """
-        This class opens in 2 threads the browser and the flask server
+        This class opens in 3 threads the browser, the flask server, and a thread which closes the server if GUI is not opened
         
         Described Parameters:
 
-        app,                              ==> flask  class instance
-        browser_name="chrome",            ==> name of the browser "chrome" or "firefox"
-        browser_path="",                  ==> full path to browser exe, ex: "C:/browser_folder/chrome.exe"
-        localhost="http://127.0.0.1:5000" ==> specify other if needed
-        executable_name                   ==> the executable "main.py" will be "main.exe" after freezing
+        app,                              ==> flask  class instance (required)
         width=800                         ==> default width 800 
         height=600                        ==> default height 600
+        browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
+                                              (needed if you want to start a specific browser)
+        server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
+                                              the desired server for your choosed framework (bottle, django, web2py pyramid etc)
+        host="127.0.0.1"                  ==> specify other if needed
+        port=5000                         ==> specify other if needed
     """
 
-    def __init__(self, app, browser_name="chrome", browser_path="", localhost="http://127.0.0.1:5000", executable_name="", width=800, height=600):
+    def __init__(self, app, width=800, height=600, browser_path="", server="flask", host="127.0.0.1", port=5000):
         self.flask_app = app
-        self.flask_thread = Thread(target=self.run_flask)
-        self.browser_thread = Thread(target=self.open_browser)
-        self.close_flask_thread = Thread(target=self.close_server)
-        self.browser_name = browser_name
-        self.browser_path = browser_path
-        self.localhost = localhost
-        self.executable_name = executable_name
         self.width = str(width)
         self.height= str(height)
+        self.browser_path = browser_path
+        self.server = server
+        self.host = host
+        self.port = port
+        self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
+        self.flask_thread = Thread(target=self.run_flask, daemon=True) #daemon doesn't work...
+        self.browser_thread = Thread(target=self.open_browser)
+        self.close_flask_thread = Thread(target=self.close_server)
+
 
     def run(self):
         """
@@ -55,39 +59,112 @@ class FlaskUI:
 
     
     def run_flask(self):
-        self.flask_app.run()
+        """
+            Run flask or other framework specified
+        """
+        if isinstance(self.server, str):
+            if self.server.lower() == "flask":
+                self.flask_app.run(host=self.host, port=self.port)
+        else:
+            self.server()
 
-    
-    def find_browser(self):
+
+    def get_files_from_cwd(self):
         """
-            Find a path to browser, Chrome, Chromium or Firefox
-            Chrome/Chromium is prefered because it has a nice 'app' mode which looks like a desktop app
+            Get a list of files from the current directory
         """
+
+        root_path = os.getcwd()
+
+        allfiles = []
+        for root, dirs, files in os.walk(root_path):
+            for file in files:
+                path_tofile = os.path.join(root, file)
+                allfiles.append(path_tofile)
+
+        return allfiles
+
+
+
+    def get_default_chrome_path(self):
+        """
+            Credits for get_instance_path, find_chrome_mac, find_chrome_linux, find_chrome_win funcs
+            got from: https://github.com/ChrisKnott/Eel/blob/master/eel/chrome.py
+        """
+        if sys.platform in ['win32', 'win64']:
+            return self.find_chrome_win()
+        elif sys.platform == 'darwin':
+            return self.find_chrome_mac()
+        elif sys.platform.startswith('linux'):
+            return self.find_chrome_linux()
+
+
+    def find_chrome_mac(self):
+        default_dir = r'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+        if os.path.exists(default_dir):
+            return default_dir
+        # use mdfind ci to locate Chrome in alternate locations and return the first one
+        name = 'Google Chrome.app'
+        alternate_dirs = [x for x in sps.check_output(["mdfind", name]).decode().split('\n') if x.endswith(name)] 
+        if len(alternate_dirs):
+            return alternate_dirs[0] + '/Contents/MacOS/Google Chrome'
+        return None
+
+
+    def find_chrome_linux(self):
+        import whichcraft as wch
+        chrome_names = ['chromium-browser',
+                        'chromium',
+                        'google-chrome',
+                        'google-chrome-stable']
+
+        for name in chrome_names:
+            chrome = wch.which(name)
+            if chrome is not None:
+                return chrome
+        return None
+
+
+    def find_chrome_win(self):
         import winreg as reg
-        reg_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\{}.exe'.format(self.browser_name)
+        reg_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
 
         for install_type in reg.HKEY_CURRENT_USER, reg.HKEY_LOCAL_MACHINE:
             try:
-                # Look in the windows registry to find browser path
                 reg_key = reg.OpenKey(install_type, reg_path, 0, reg.KEY_READ)
-                browser_path = reg.QueryValue(reg_key, None)
+                chrome_path = reg.QueryValue(reg_key, None)
                 reg_key.Close()
             except WindowsError:
-                # Look for portable verstion of chrome next to main.py
-                if os.path.isfile("chrome/chrome.exe"):
-                    browser_path = "chrome/chrome.exe"
-                elif os.path.isfile("chrome/bin/chrome.exe"):
-                    browser_path = "chrome/bin/chrome.exe"
-                elif os.path.isfile(self.browser_path):
-                    browser_path = self.browser_path
-                else:
-                    raise EnvironmentError("Can't find browser! Please specify 'browser_path'")
+                chrome_path = None
             else:
                 break
 
-        return browser_path
+        return chrome_path
 
 
+    def find_browser(self):
+        """
+            Find a path to browser
+            Chrome/Chromium is prefered because it has a nice 'app' mode which looks like a desktop app
+        """
+
+        # Return browser_path param
+        if os.path.isfile(self.browser_path):
+            return self.browser_path
+        # Raise error if browser path param doesn't exist
+        if self.browser_path != "":
+            raise Exception("Path {} does not exist!".format(self.browser_path))
+        # Return browser_path from curent folder if chrome.exe/.app./sh file is found
+        files = self.get_files_from_cwd()
+        chrome = [fpath for fpath in files if fpath[-4:] in [".exe", ".app"] or fpath[-3:] in [".sh"]]
+        if len(chrome) == 1:
+            if os.path.isfile(chrome[0]):
+                return os.path.relpath(chrome[0])
+        # If browser_path not completed and in curent folder portable chrome not found then 
+        # try to find default chrome installation
+        return self.get_default_chrome_path()
+        
+ 
     def open_browser(self):
         """
             Open the browser selected (by default it looks for chrome)
@@ -95,48 +172,74 @@ class FlaskUI:
 
         browser_path = self.find_browser()
         
-        if browser_path != "":
-            if self.browser_name == "firefox":
-                sps.Popen([browser_path, self.localhost], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-            elif "chrome.exe" in browser_path:
+        if browser_path:
+            try:
                 sps.Popen([browser_path, '--app={}'.format(self.localhost), "--window-size={},{}".format(self.width, self.height)], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+            except:
+                sps.Popen([browser_path, self.localhost], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
-            raise Exception("Can't open the browser specified!")
-    
+            #Trying to open the default browser
+            if sys.platform in ['win32', 'win64']:
+                os.startfile(self.localhost)
+            elif sys.platform == 'darwin':
+                subprocess.Popen(['open', self.localhost])
+            else:
+                try:
+                    subprocess.Popen(['xdg-open', self.localhost])
+                except:
+                    raise Exception("Didn't found any browser to run on!\nPlease fill 'browser_path' parameter!") 
+
+
     def browser_runs(self):
         """
-            Check if firefox or chrome is opened
+            Check if firefox or chrome is opened / Improv daemon not working
         """
         chrome = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
         firefox = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'firefox' in p.info['name']]
+        # ie = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'iexplore' in p.info['name']]
 
         if chrome or firefox:
             return True
         else:
             return False
 
+    
+    def get_exe(self):
+        """
+            Get an .exe files available in the current directory
+        """
+        files = self.get_files_from_cwd()
+        exeli = [os.path.basename(fp) for fp in files if fp.endswith(".exe")]
+        return exeli
 
+    
     def kill_service(self):
         """
             Close all python/background processes
         """
 
-        proc_name = "main.exe" if self.executable_name == ""  else self.executable_name
-
+        exeli = self.get_exe()
+        # print(exeli)
         for proc in psutil.process_iter():
-            if proc.name() == proc_name or proc.name() == "python.exe":
+            if proc.name() == "python.exe" or proc.name() == "pythonw.exe":
                 proc.kill()
+            for exe in exeli:
+                if proc.name() == exe.replace(".exe", ""):
+                    proc.kill()
+        
+        sys.exit()
 
-
+            
     def close_server(self):
         """
-            If chrome or firefox process is not running close flask server
+            If browser process is not running close flask server
         """
 
         while self.browser_runs():
-            time.sleep(1)
+            time.sleep(3)
 
         self.kill_service()
+        
 
         
 

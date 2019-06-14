@@ -1,5 +1,5 @@
 # flaskwebgui
-Freeze web apps made in Flask as desktop apps with flaskwebgui and pyinstaller 
+Freeze web apps made in Flask as desktop apps with flaskwebgui and pyvan 
 
 ### Install
 ```
@@ -12,7 +12,9 @@ from flaskwebgui import FlaskUI #get the FlaskUI class
 
 
 app = Flask(__name__)
-ui = FlaskUI(app) # Feed it the flask app instance
+
+# Feed it the flask app instance (check bellow what param you can add)
+ui = FlaskUI(app) 
 
 
 # do your logic as usual in Flask
@@ -22,36 +24,48 @@ def index():
     return "It works!"
 
 
-ui.run() # call the 'run' method from the FlaskUI instance
+
+# call the 'run' method
+ui.run()
  
 ```
 ### Configurations
 
 Default FlaskUI class parameters: 
 
-        * app,                              ==> flask  class instance
-        * browser_name="chrome",            ==> name of the browser "chrome" or "firefox"
-        * browser_path="",                  ==> full path to browser exe, ex: "C:/browser_folder/chrome.exe"
-        * localhost="http://127.0.0.1:5000" ==> specify other if needed
-        * executable_name                   ==> the executable "main.py" will be "main.exe" after freezing (needed to close the exe)
-        * width=800                         ==> default width 800 
-        * height=600                        ==> default height 600
+* app,                              ==> flask  class instance (required)
+* width=800                         ==> default width 800 
+* height=600                        ==> default height 600
+* browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
+                                        (needed if you want to start a specific browser)
+* server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
+                                        the desired server for your choosed framework (bottle, django, web2py pyramid etc)
+* host="127.0.0.1"                  ==> specify other if needed
+* port=5000                         ==> specify other if needed
 
+
+Should work on windows/linux/mac with no isssues.
+
+If browser is not found, this would be quick fix: `FlaskUI (app, browser_path=r"path/to/chrome.exe")`
+
+### The recommended way of using flaskwebgui
+
+- Download portable [Chromium](https://chromium.woolyss.com/) for the your targeted os
+
+- place the extracted portable app next to "main.py" file, 
+
+- flaskwebgui will look for chrome.exe/.app/.sh
+
+In this way when you distribute it, you don't need users to have chrome installed, it will work like a portable app.
 <br>
-You can use a portable version of Chrome!
+ Also, during development of your app do that in the normal way you do a Flask app without flaskwebgui. Use flaskwebgui only when you are finished the app(test the app) and ready to deploy.
 <br>
-Download Chromium portable from -> https://chromium.woolyss.com/
-<br>
-Place the portable Chromium app next to main.py file.
-<br>
+flaskwebgui doesn't interfere with your way of doing a flask application it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan)
+
 
 ### Distribution
 
-```
-pyinstaller main.py
-
-```
-You can distribute it with [pyvan](https://github.com/ClimenteA/pyvan) also.
+You can distribute it as a standalone desktop app with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
 
 
 ### Credits
