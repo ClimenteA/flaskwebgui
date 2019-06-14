@@ -1,6 +1,8 @@
 # flaskwebgui
 #### Create desktop applications with Flask!
 
+<br>
+
 ### Install
 ```
 pip install flaskwebgui
