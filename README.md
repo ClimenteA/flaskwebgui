@@ -1,5 +1,5 @@
-# flaskwebgui
-Create desktop applications with Flask!
+# flaskwebgui - Create desktop applications with Flask!
+
 
 ### Install
 ```
