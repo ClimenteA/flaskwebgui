@@ -62,7 +62,7 @@ In this way when you distribute it, you don't need users to have chrome installe
 <br>
  Also, during development of your app do that in the normal way you do a Flask app without flaskwebgui. Use flaskwebgui only when you are finished the app(test the app) and ready to deploy.
 <br>
-flaskwebgui doesn't interfere with your way of doing a flask application it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan)
+**flaskwebgui doesn't interfere with your way of doing a flask application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan)
 
 
 ### Distribution

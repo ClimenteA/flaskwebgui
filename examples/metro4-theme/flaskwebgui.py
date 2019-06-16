@@ -30,7 +30,7 @@ class FlaskUI:
         self.host = host
         self.port = port
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
-        self.flask_thread = Thread(target=self.run_flask, daemon=True)
+        self.flask_thread = Thread(target=self.run_flask, daemon=True) #daemon doesn't work...
         self.browser_thread = Thread(target=self.open_browser)
         self.close_flask_thread = Thread(target=self.close_server)
 
@@ -182,10 +182,10 @@ class FlaskUI:
             if sys.platform in ['win32', 'win64']:
                 os.startfile(self.localhost)
             elif sys.platform == 'darwin':
-                subprocess.Popen(['open', self.localhost])
+                sps.Popen(['open', self.localhost])
             else:
                 try:
-                    subprocess.Popen(['xdg-open', self.localhost])
+                    sps.Popen(['xdg-open', self.localhost])
                 except:
                     raise Exception("Didn't found any browser to run on!\nPlease fill 'browser_path' parameter!") 
 

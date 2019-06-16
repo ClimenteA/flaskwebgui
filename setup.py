@@ -11,8 +11,8 @@ with open("README.md", "r") as fh:
 
 setup (
 	name="flaskwebgui",
-	version="0.0.6",
-	description="Freeze web apps made in Flask as desktop apps with flaskwebgui and pyvan",
+	version="0.0.7",
+	description="Create desktop applications with Flask!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
 	author_email="climente.alin@gmail.com",
@@ -20,6 +20,7 @@ setup (
 	py_modules=["flaskwebgui"],
 	install_requires=[
           'psutil',
+		  'whichcraft',
       ],
 	packages=find_packages(),
 	long_description=long_description,
