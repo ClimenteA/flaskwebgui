@@ -35,15 +35,15 @@ ui.run()
 
 Default FlaskUI class parameters: 
 
-* app,                              ==> flask  class instance (required)
-* width=800                         ==> default width 800 
-* height=600                        ==> default height 600
-* browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
+* **app**,                              ==> flask  class instance (required)
+* **width=800**                         ==> default width 800 
+* **height=600**                        ==> default height 600
+* **browser_path=""**,                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
                                         (needed if you want to start a specific browser)
-* server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
+* **server="flask"**                    ==> the default backend framework is flask, but you can add a function which starts 
                                         the desired server for your choosed framework (bottle, django, web2py pyramid etc)
-* host="127.0.0.1"                  ==> specify other if needed
-* port=5000                         ==> specify other if needed
+* **host="127.0.0.1"**                  ==> specify other if needed
+* **port=5000**                         ==> specify other if needed
 
 
 Should work on windows/linux/mac with no isssues.
