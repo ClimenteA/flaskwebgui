@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
 
-#python setup.py bdist_wheel sdist
+#python3 setup.py bdist_wheel sdist
+#twine check dist/*
 #cd dist 
 #twine upload *
 
@@ -11,7 +12,7 @@ with open("README.md", "r") as fh:
 
 setup (
 	name="flaskwebgui",
-	version="0.0.7",
+	version="0.0.8",
 	description="Create desktop applications with Flask!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
