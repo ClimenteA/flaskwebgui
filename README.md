@@ -9,6 +9,7 @@ pip install flaskwebgui
 ```
 
 ### Usage
+[Check this video!] (https://www.youtube.com/watch?v=dCHmSJQqD_w)
 
 ```
 from flask import Flask
