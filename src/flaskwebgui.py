@@ -13,6 +13,8 @@ class FlaskUI:
         app,                              ==> flask  class instance (required)
         width=800                         ==> default width 800 
         height=600                        ==> default height 600
+        fullscreen=False,                 ==> start app in fullscreen mode
+        app_mode=True                     ==> by default it will start the application in chrome app mode
         browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
                                               (needed if you want to start a specific browser)
         server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
@@ -21,10 +23,12 @@ class FlaskUI:
         port=5000                         ==> specify other if needed
     """
 
-    def __init__(self, app, width=800, height=600, browser_path="", server="flask", host="127.0.0.1", port=5000):
+    def __init__(self, app, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
+        self.fullscreen = fullscreen
+        self.app_mode = app_mode
         self.browser_path = browser_path
         self.server = server
         self.host = host
@@ -174,31 +178,32 @@ class FlaskUI:
         
         if browser_path:
             try:
-                sps.Popen([browser_path, '--app={}'.format(self.localhost), "--window-size={},{}".format(self.width, self.height)], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                if self.app_mode: 
+                    if self.fullscreen:
+                        sps.Popen([browser_path, "--start-fullscreen", '--app={}'.format(self.localhost)], 
+                        stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                    else:
+                        sps.Popen([browser_path, "--window-size={},{}".format(self.width, self.height),
+                        '--app={}'.format(self.localhost)], 
+                        stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                else:
+                    sps.Popen([browser_path, self.localhost], 
+                    stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                    
             except:
-                sps.Popen([browser_path, self.localhost], stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                sps.Popen([browser_path, self.localhost], 
+                stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
-            #Trying to open the default browser
-            if sys.platform in ['win32', 'win64']:
-                os.startfile(self.localhost)
-            elif sys.platform == 'darwin':
-                sps.Popen(['open', self.localhost])
-            else:
-                try:
-                    sps.Popen(['xdg-open', self.localhost])
-                except:
-                    raise Exception("Didn't found any browser to run on!\nPlease fill 'browser_path' parameter!") 
-
+            import webbrowser
+            webbrowser.open_new(self.localhost)
 
     def browser_runs(self):
         """
             Check if firefox or chrome is opened / Improv daemon not working
         """
         chrome = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
-        firefox = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'firefox' in p.info['name']]
-        # ie = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'iexplore' in p.info['name']]
-
-        if chrome or firefox:
+     
+        if chrome:
             return True
         else:
             return False
