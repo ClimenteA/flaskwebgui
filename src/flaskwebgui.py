@@ -218,32 +218,27 @@ class FlaskUI:
         return exeli
 
     
-    def kill_service(self):
+    def kill_python(self):
         """
             Close all python/background processes
         """
+        if os.name == "nt":
+            os.system("taskkill /f /im python.exe")
+            os.system("taskkill /f /im pythonw.exe")
+        else:
+            os.system("killall python.exe")
+            os.system("killall pythonw.exe")
 
-        exeli = self.get_exe()
-        # print(exeli)
-        for proc in psutil.process_iter():
-            if proc.name() == "python.exe" or proc.name() == "pythonw.exe":
-                proc.kill()
-            for exe in exeli:
-                if proc.name() == exe.replace(".exe", ""):
-                    proc.kill()
-        
-        sys.exit()
-
-            
+  
     def close_server(self):
         """
             If browser process is not running close flask server
         """
 
         while self.browser_runs():
-            time.sleep(3)
+            time.sleep(2)
 
-        self.kill_service()
+        self.kill_python()
         
 
         
