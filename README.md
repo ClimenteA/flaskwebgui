@@ -9,6 +9,8 @@ pip install flaskwebgui
 ```
 Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/ClimenteA/flaskwebgui/master/src/flaskwebgui.py) and place it where you need. 
 
+<a href="https://raw.githubusercontent.com/ClimenteA/flaskwebgui/master/src/flaskwebgui.py" download="flaskwebgui.py">flaskwebgui.py</a>
+
 ### Usage
 Check this [video](https://www.youtube.com/watch?v=dCHmSJQqD_w)! 
 
