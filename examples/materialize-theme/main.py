@@ -3,7 +3,7 @@ from flask import render_template
 from flaskwebgui import FlaskUI
 
 app = Flask(__name__)
-ui = FlaskUI(app, browser_path=r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe")
+ui = FlaskUI(app)
 
 
 @app.route("/")

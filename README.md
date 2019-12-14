@@ -9,7 +9,8 @@ pip install flaskwebgui
 ```
 Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/ClimenteA/flaskwebgui/master/src/flaskwebgui.py) and place it where you need. 
 
-### Usage
+### Usage with Flask
+
 Check this [video](https://www.youtube.com/watch?v=dCHmSJQqD_w)! 
 
 ```
@@ -30,6 +31,27 @@ return "It works!"
 ui.run()
 
 ```
+### Usage with Django
+
+Make a file 'gui.py'(file name not important) next to 'manage.py' file in the django project folder.
+
+Inside 'gui.py' file add these 2 lines of code:
+
+```
+
+from flaskwebgui import FlaskUI #import FlaskUI class
+
+#You can also call the run function on FlaskUI class instantiation
+
+FlaskUI(server='django').run()
+
+```
+
+Next run from your terminal the bellow command:
+
+```
+python gui.py
+```
 
 ### Configurations
 
@@ -46,7 +68,7 @@ Default FlaskUI class parameters:
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
 * **browser_path=""**, ==> full path to browser.exe ("C:/browser_folder/chrome.exe" -needed if you want to start a specific browser)
-* **server="flask"** ==> the default backend framework is flask, but you can add a function which starts the desired server for your choosed framework (bottle, django, web2py pyramid etc)
+* **server="flask"** ==> the default backend framework is flask, but you can add a function which starts the desired server for your choosed framework (django, bottle, web2py pyramid etc)
 
 * **host="127.0.0.1"** ==> specify other if needed
 

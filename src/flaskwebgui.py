@@ -10,7 +10,7 @@ class FlaskUI:
         
         Described Parameters:
 
-        app,                              ==> flask  class instance (required)
+        app,                              ==> flask  class instance 
         width=800                         ==> default width 800 
         height=600                        ==> default height 600
         fullscreen=False,                 ==> start app in fullscreen mode
@@ -18,12 +18,13 @@ class FlaskUI:
         browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
                                               (needed if you want to start a specific browser)
         server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
-                                              the desired server for your choosed framework (bottle, django, web2py pyramid etc)
+                                              the desired server for your choosed framework (django, bottle, web2py pyramid etc)
         host="127.0.0.1"                  ==> specify other if needed
         port=5000                         ==> specify other if needed
+    
     """
 
-    def __init__(self, app, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000):
+    def __init__(self, app=None, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
@@ -69,6 +70,10 @@ class FlaskUI:
         if isinstance(self.server, str):
             if self.server.lower() == "flask":
                 self.flask_app.run(host=self.host, port=self.port)
+            elif self.server.lower() == "django":
+                os.system("python3 manage.py runserver {}:{}".format(self.host, self.port))
+            else:
+                raise Exception("{} must be a function which starts the webframework server!".format(self.server))
         else:
             self.server()
 
