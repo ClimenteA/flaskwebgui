@@ -62,7 +62,7 @@ Default FlaskUI class parameters:
 
 * **height=600** ==> default height 600
 
-* **fullscreen=false** ==> start app in fullscreen
+* **fullscreen=False** ==> start app in fullscreen
 
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
