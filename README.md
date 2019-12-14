@@ -5,7 +5,6 @@ Create desktop applications with Flask!
 
 ```
 pip install flaskwebgui
-
 ```
 Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/ClimenteA/flaskwebgui/master/src/flaskwebgui.py) and place it where you need. 
 
