@@ -67,7 +67,7 @@ Default FlaskUI class parameters:
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
 * **browser_path=""**, ==> full path to browser.exe ("C:/browser_folder/chrome.exe" -needed if you want to start a specific browser)
-* **server="flask"** ==> the default backend framework is flask, but you can add a function which starts the desired server for your choosed framework (django, bottle, web2py pyramid etc)
+* **server="flask"** ==> the default backend framework is flask (django is suported also), but you can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
 
 * **host="127.0.0.1"** ==> specify other if needed
 
