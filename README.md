@@ -56,7 +56,7 @@ python gui.py
 
 Default FlaskUI class parameters:
 
-* **app**, ==> flask class instance (required)
+* **app**, ==> flask class instance
 
 * **width=800** ==> default width 800
 
