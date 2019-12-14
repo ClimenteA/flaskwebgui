@@ -1,10 +1,16 @@
 from setuptools import setup, find_packages
 
+#Distribute py wheels
 #python3 setup.py bdist_wheel sdist
 #twine check dist/*
 #cd dist 
 #twine upload *
 
+#Basic GIT
+#git init
+#git add --all
+#git commit -m "made some changes"
+#git push origin master
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
