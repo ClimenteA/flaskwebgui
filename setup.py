@@ -13,7 +13,7 @@ with open("README.md", "r") as fh:
 setup (
 	name="flaskwebgui",
 	version="0.1.1",
-	description="Create desktop applications with Flask!",
+	description="Create desktop applications with Flask (or Django)!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
 	author_email="climente.alin@gmail.com",
@@ -22,6 +22,7 @@ setup (
 	install_requires=[
           'psutil',
 		  'whichcraft',
+		  'flask'
       ],
 	packages=find_packages(),
 	long_description=long_description,
