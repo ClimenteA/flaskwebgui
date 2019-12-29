@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 #twine upload *
 
 #Basic GIT
-#git init
+#git init/clone
 #git add --all
 #git commit -m "made some changes"
 #git push origin master
@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
 
 setup (
 	name="flaskwebgui",
-	version="0.1.1",
+	version="0.1.2",
 	description="Create desktop applications with Flask (or Django)!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",

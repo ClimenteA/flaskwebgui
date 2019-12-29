@@ -71,7 +71,10 @@ class FlaskUI:
             if self.server.lower() == "flask":
                 self.flask_app.run(host=self.host, port=self.port)
             elif self.server.lower() == "django":
-                os.system("python3 manage.py runserver {}:{}".format(self.host, self.port))
+                if sys.platform in ['win32', 'win64']:
+                    os.system("python manage.py runserver {}:{}".format(self.host, self.port))
+                else:
+                    os.system("python3 manage.py runserver {}:{}".format(self.host, self.port))
             else:
                 raise Exception("{} must be a function which starts the webframework server!".format(self.server))
         else:
