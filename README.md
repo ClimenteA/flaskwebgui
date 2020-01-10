@@ -97,4 +97,11 @@ It's a combination of https://github.com/Widdershin/flask-desktop and https://gi
 
 flaskwebgui just uses threading to start a flask server and the browser in app mode (for chrome).
 It has some advantages over flask-desktop because it doesn't use PyQt5, so you won't have any issues regarding licensing and over Eel because you don't need to learn any logic other than Flask.
+
 **Submit any questions issues you have! Fell free to fork it and improve it if you want!**
+
+**Temporary known issue: flaskwebgui can't run if other chrome instances are running. Close all chrome instances before starting..**
+
+
+
+
