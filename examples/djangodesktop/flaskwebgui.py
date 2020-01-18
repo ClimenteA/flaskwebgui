@@ -38,6 +38,10 @@ class FlaskUI:
         self.flask_thread = Thread(target=self.run_flask, daemon=True) #daemon doesn't work...
         self.browser_thread = Thread(target=self.open_browser)
         self.close_flask_thread = Thread(target=self.close_server)
+        self.BROWSER_PROCESS = None
+        #TODO Need to find a way to identify the flaskwebgui chrome instance and close that one..
+        chrome_pids = [p.info['pid'] for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
+        [psutil.Process(pid).kill() for pid in chrome_pids]
 
 
     def run(self):
@@ -71,7 +75,10 @@ class FlaskUI:
             if self.server.lower() == "flask":
                 self.flask_app.run(host=self.host, port=self.port)
             elif self.server.lower() == "django":
-                os.system("python3 manage.py runserver {}:{}".format(self.host, self.port))
+                if sys.platform in ['win32', 'win64']:
+                    os.system("python manage.py runserver {}:{}".format(self.host, self.port))
+                else:
+                    os.system("python3 manage.py runserver {}:{}".format(self.host, self.port))
             else:
                 raise Exception("{} must be a function which starts the webframework server!".format(self.server))
         else:
@@ -184,57 +191,37 @@ class FlaskUI:
         if browser_path:
             try:
                 if self.app_mode: 
+
                     if self.fullscreen:
-                        sps.Popen([browser_path, "--start-fullscreen", '--app={}'.format(self.localhost)], 
+                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--start-fullscreen", '--app={}'.format(self.localhost)], 
                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
                     else:
-                        sps.Popen([browser_path, "--window-size={},{}".format(self.width, self.height),
+                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--window-size={},{}".format(self.width, self.height),
                         '--app={}'.format(self.localhost)], 
                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
                 else:
-                    sps.Popen([browser_path, self.localhost], 
+                    self.BROWSER_PROCESS = sps.Popen([browser_path, self.localhost], 
                     stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-                    
             except:
-                sps.Popen([browser_path, self.localhost], 
+                self.BROWSER_PROCESS = sps.Popen([browser_path, self.localhost], 
                 stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
             import webbrowser
             webbrowser.open_new(self.localhost)
 
+
     def browser_runs(self):
         """
-            Check if firefox or chrome is opened / Improv daemon not working
+            Check if chrome is opened / Improv daemon not working
         """
-        chrome = [p.info for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
-     
-        if chrome:
+        try: 
+            if self.BROWSER_PROCESS.poll() == 0:
+                return False
+            else:
+                return True
+        except: #Fails untill server and browser starts
             return True
-        else:
-            return False
 
-    
-    def get_exe(self):
-        """
-            Get an .exe files available in the current directory
-        """
-        files = self.get_files_from_cwd()
-        exeli = [os.path.basename(fp) for fp in files if fp.endswith(".exe")]
-        return exeli
-
-    
-    def kill_python(self):
-        """
-            Close all python/background processes
-        """
-        if os.name == "nt":
-            os.system("taskkill /f /im python.exe")
-            os.system("taskkill /f /im pythonw.exe")
-        else:
-            os.system("killall python.exe")
-            os.system("killall pythonw.exe")
-
-  
     def close_server(self):
         """
             If browser process is not running close flask server
@@ -242,8 +229,9 @@ class FlaskUI:
 
         while self.browser_runs():
             time.sleep(2)
-
-        self.kill_python()
+        #Kill current python process
+        psutil.Process(os.getpid()).kill()
+        
         
 
         

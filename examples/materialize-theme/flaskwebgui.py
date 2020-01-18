@@ -39,6 +39,9 @@ class FlaskUI:
         self.browser_thread = Thread(target=self.open_browser)
         self.close_flask_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
+        #TODO Need to find a way to identify the flaskwebgui chrome instance and close that one..
+        chrome_pids = [p.info['pid'] for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
+        [psutil.Process(pid).kill() for pid in chrome_pids]
 
 
     def run(self):
