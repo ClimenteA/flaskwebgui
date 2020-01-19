@@ -107,8 +107,4 @@ It has some advantages over flask-desktop because it doesn't use PyQt5, so you w
 
 **Submit any questions issues you have! Fell free to fork it and improve it if you want!**
 
-**Temporary known issue: flaskwebgui can't run if other chrome instances are running.**
-
-
-
 
