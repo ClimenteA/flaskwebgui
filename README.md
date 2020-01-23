@@ -52,13 +52,6 @@ Next run from your terminal the bellow command:
 python gui.py
 ```
 
-### Django local desktop app configuration
-Yep can be done, checkout [pyvan](https://github.com/ClimenteA/pyvan).
-Copy django folder from their git repo add in the django folder asgiref and sqlparse dependencies run python manage.py fix broken imports by adding from django.sqlparse import x or import django.sqlparse etc(you will figure it out.)
-
-And that's it !
-
-
 ### Configurations
 
 Default FlaskUI class parameters:
