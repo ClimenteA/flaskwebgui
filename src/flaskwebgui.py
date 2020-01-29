@@ -24,7 +24,7 @@ class FlaskUI:
     
     """
 
-    def __init__(self, app=None, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000):
+    def __init__(self, app=None, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
@@ -34,6 +34,7 @@ class FlaskUI:
         self.server = server
         self.host = host
         self.port = port
+        self.socketio = socketio
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
         self.flask_thread = Thread(target=self.run_flask, daemon=True) #daemon doesn't work...
         self.browser_thread = Thread(target=self.open_browser)
@@ -73,7 +74,10 @@ class FlaskUI:
         """
         if isinstance(self.server, str):
             if self.server.lower() == "flask":
-                self.flask_app.run(host=self.host, port=self.port)
+                if self.socketio:
+                    self.socketio.run(self.flask_app, host=self.host, port=self.port)
+                else:
+                    self.flask_app.run(host=self.host, port=self.port)
             elif self.server.lower() == "django":
                 if sys.platform in ['win32', 'win64']:
                     os.system("python manage.py runserver {}:{}".format(self.host, self.port))
