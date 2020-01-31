@@ -21,6 +21,7 @@ class FlaskUI:
                                               the desired server for your choosed framework (django, bottle, web2py pyramid etc)
         host="127.0.0.1"                  ==> specify other if needed
         port=5000                         ==> specify other if needed
+        socketio                          ==> specify flask-socketio instance if you are using flask with socketio
     
     """
 
