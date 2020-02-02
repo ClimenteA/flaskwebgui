@@ -73,6 +73,8 @@ Default FlaskUI class parameters:
 
 * **port=5000** ==> specify other if needed
 
+* **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
+
 Should work on windows/linux/mac with no isssues.
 
 If browser is not found, this would be quick fix: `FlaskUI (app, browser_path=r"path/to/chrome.exe")`
