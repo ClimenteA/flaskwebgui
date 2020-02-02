@@ -14,6 +14,7 @@ class FlaskUI:
         width=800                         ==> default width 800 
         height=600                        ==> default height 600
         fullscreen=False,                 ==> start app in fullscreen mode
+        maximized=False,                 ==> start app in maximized window
         app_mode=True                     ==> by default it will start the application in chrome app mode
         browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
                                               (needed if you want to start a specific browser)
@@ -25,11 +26,12 @@ class FlaskUI:
     
     """
 
-    def __init__(self, app=None, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None):
+    def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
         self.fullscreen = fullscreen
+        self.maximized = maximized
         self.app_mode = app_mode
         self.browser_path = browser_path
         self.server = server
@@ -199,6 +201,9 @@ class FlaskUI:
 
                     if self.fullscreen:
                         self.BROWSER_PROCESS = sps.Popen([browser_path, "--start-fullscreen", '--app={}'.format(self.localhost)], 
+                        stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                    elif self.maximized:
+                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--start-maximized", '--app={}'.format(self.localhost)],
                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
                     else:
                         self.BROWSER_PROCESS = sps.Popen([browser_path, "--window-size={},{}".format(self.width, self.height),
