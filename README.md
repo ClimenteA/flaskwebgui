@@ -64,6 +64,8 @@ Default FlaskUI class parameters:
 
 * **fullscreen=False** ==> start app in fullscreen
 
+* **maximized=False** ==> start app in maximized window
+
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
 * **browser_path=""**, ==> full path to browser.exe ("C:/browser_folder/chrome.exe" -needed if you want to start a specific browser)
