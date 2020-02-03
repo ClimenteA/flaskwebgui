@@ -1,14 +1,13 @@
 <p align="center">
+  <img src="flaskwebgui.png">
+</p>
+
+<p align="center">
   <h4> Create desktop applications with Flask (or Django)!</h4>
   
   [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 
 </p>
-
-<p align="center">
-  <img src="flaskwebgui.png">
-</p>
-
 
 
 
