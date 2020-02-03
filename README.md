@@ -2,9 +2,7 @@
   <img src="flaskwebgui.png">
 </p>
 
-[![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
-#### Create desktop applications with Flask (or Django)!
-
+#### Create desktop applications with Flask (or Django)! [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 
 
 ### Install
