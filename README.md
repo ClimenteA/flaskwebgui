@@ -1,5 +1,6 @@
-
-![logo](flaskwebgui.png) 
+<p align="center">
+  <img src="flaskwebgui.png">
+</p>
 
 [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 #### Create desktop applications with Flask (or Django)!
