@@ -23,10 +23,12 @@ class FlaskUI:
         host="localhost"                  ==> specify other if needed
         port=5000                         ==> specify other if needed
         socketio                          ==> specify flask-socketio instance if you are using flask with socketio
-    
+        on_exit                           ==> specify on-exit function which will be run before closing the app
+
     """
 
-    def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="localhost", port=5000, socketio=None):
+
+    def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None, on_exit=None):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
@@ -38,11 +40,15 @@ class FlaskUI:
         self.host = host
         self.port = port
         self.socketio = socketio
+        self.on_exit = on_exit
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
         self.flask_thread = Thread(target=self.run_flask) #daemon doesn't work...
         self.browser_thread = Thread(target=self.open_browser)
         self.close_flask_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
+        #TODO Need to find a way to identify the flaskwebgui chrome instance and close that one..
+        chrome_pids = [p.info['pid'] for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
+        [psutil.Process(pid).kill() for pid in chrome_pids]
 
 
     def run(self):
@@ -50,11 +56,7 @@ class FlaskUI:
             Start the flask and gui threads instantiated in the constructor func
         """
 
-        try:
-            self.flask_thread.start()
-        except OSError:
-            print("Close previous flask server!")
-            
+        self.flask_thread.start()    
         self.browser_thread.start()
         
         #Wait for the browser to run (1 min)
@@ -236,10 +238,7 @@ class FlaskUI:
                         return True
                     else:
                         return False
-
-                    if not p.poll():
-                        print(p.communicate())
-                    
+                      
         except: #Fails untill server and browser starts
             return True
 
@@ -255,7 +254,10 @@ class FlaskUI:
             # except:
             #     pass
             time.sleep(2)
-        
+
+        if self.on_exit:
+            self.on_exit()
+            
         #print("Browser closed!")
         #Kill current python process
         psutil.Process(os.getpid()).kill()
