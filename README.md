@@ -1,5 +1,15 @@
-﻿# flaskwebgui [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
-Create desktop applications with Flask (or Django)!
+<p align="center">
+  <img src="flaskwebgui.png">
+</p>
+
+<p align="center">
+  <h4> Create desktop applications with Flask (or Django)!</h4>
+  
+  [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
+
+</p>
+
+
 
 ### Install
 
@@ -63,6 +73,8 @@ Default FlaskUI class parameters:
 * **height=600** ==> default height 600
 
 * **fullscreen=False** ==> start app in fullscreen
+
+* **maximized=False** ==> start app in maximized window
 
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 

@@ -14,22 +14,24 @@ class FlaskUI:
         width=800                         ==> default width 800 
         height=600                        ==> default height 600
         fullscreen=False,                 ==> start app in fullscreen mode
+        maximized=False,                  ==> start app in maximized window
         app_mode=True                     ==> by default it will start the application in chrome app mode
         browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
                                               (needed if you want to start a specific browser)
         server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
                                               the desired server for your choosed framework (django, bottle, web2py pyramid etc)
-        host="127.0.0.1"                  ==> specify other if needed
+        host="localhost"                  ==> specify other if needed
         port=5000                         ==> specify other if needed
         socketio                          ==> specify flask-socketio instance if you are using flask with socketio
     
     """
 
-    def __init__(self, app=None, width=800, height=600, fullscreen=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None):
+    def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="localhost", port=5000, socketio=None):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
         self.fullscreen = fullscreen
+        self.maximized = maximized
         self.app_mode = app_mode
         self.browser_path = browser_path
         self.server = server
@@ -37,13 +39,10 @@ class FlaskUI:
         self.port = port
         self.socketio = socketio
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
-        self.flask_thread = Thread(target=self.run_flask, daemon=True) #daemon doesn't work...
+        self.flask_thread = Thread(target=self.run_flask) #daemon doesn't work...
         self.browser_thread = Thread(target=self.open_browser)
         self.close_flask_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
-        #TODO Need to find a way to identify the flaskwebgui chrome instance and close that one..
-        chrome_pids = [p.info['pid'] for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
-        [psutil.Process(pid).kill() for pid in chrome_pids]
 
 
     def run(self):
@@ -51,7 +50,11 @@ class FlaskUI:
             Start the flask and gui threads instantiated in the constructor func
         """
 
-        self.flask_thread.start()
+        try:
+            self.flask_thread.start()
+        except OSError:
+            print("Close previous flask server!")
+            
         self.browser_thread.start()
         
         #Wait for the browser to run (1 min)
@@ -198,10 +201,13 @@ class FlaskUI:
                 if self.app_mode: 
 
                     if self.fullscreen:
-                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--start-fullscreen", '--app={}'.format(self.localhost)], 
+                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--new-window", "--start-fullscreen", '--app={}'.format(self.localhost)], 
+                        stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                    elif self.maximized:
+                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--new-window", "--start-maximized", '--app={}'.format(self.localhost)],
                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
                     else:
-                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--window-size={},{}".format(self.width, self.height),
+                        self.BROWSER_PROCESS = sps.Popen([browser_path, "--new-window", "--window-size={},{}".format(self.width, self.height),
                         '--app={}'.format(self.localhost)], 
                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
                 else:
@@ -214,18 +220,29 @@ class FlaskUI:
             import webbrowser
             webbrowser.open_new(self.localhost)
 
-
+    def chrome_pids(self):
+        return [p.info['pid'] for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
+        
     def browser_runs(self):
         """
             Check if chrome is opened / Improv daemon not working
         """
-        try: 
-            if self.BROWSER_PROCESS.poll() == 0:
-                return False
-            else:
-                return True
+        try:
+            
+            for p in psutil.process_iter():
+                if 'chrome' in p.name() and self.BROWSER_PROCESS.pid == p.pid:
+                    #print("Match: ", p.pid, p.name(), p.status())
+                    if p.status() is not 'zombie':
+                        return True
+                    else:
+                        return False
+
+                    if not p.poll():
+                        print(p.communicate())
+                    
         except: #Fails untill server and browser starts
             return True
+
 
     def close_server(self):
         """
@@ -233,7 +250,13 @@ class FlaskUI:
         """
 
         while self.browser_runs():
+            # try:
+            #     print("Browser running: ",self.BROWSER_PROCESS.pid)
+            # except:
+            #     pass
             time.sleep(2)
+        
+        #print("Browser closed!")
         #Kill current python process
         psutil.Process(os.getpid()).kill()
         
