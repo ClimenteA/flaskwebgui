@@ -78,7 +78,7 @@ Default FlaskUI class parameters:
 
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
-* **browser_path=""**, ==> full path to browser.exe ("C:/browser_folder/chrome.exe" -needed if you want to start a specific browser)
+* **browser_path=""** ==> path to `browser.exe` (can be absolute`C:/browser_folder/chrome.exe` or relative `chromium.exe`) - if not specified, the app will run in development mode and all running Chrome processes will be killed. To avoid this behaviour, put portable Chromium `*.exe` file in the app directory and specify a path to it.
 * **server="flask"** ==> the default backend framework is flask (django is suported also), but you can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
 
 * **host="127.0.0.1"** ==> specify other if needed
@@ -93,14 +93,15 @@ If browser is not found, this would be quick fix: `FlaskUI (app, browser_path=r"
 
 ### The recommended way of using flaskwebgui
 
-- Download portable [Chromium](https://chromium.woolyss.com/) for the your targeted os
-- place the extracted portable app next to "main.py" file,
-- flaskwebgui will look for chrome.exe/.app/.sh
+- Download portable [Chromium](https://chromium.woolyss.com/) for the your targeted os,
+- Place the extracted portable app next to `main.py` file,
+- Specify the `browser_path` parameter.
+
 In this way when you distribute it, you don't need users to have chrome installed, it will work like a portable app.
 
-Also, during development of your app do that in the normal way you do a Flask app without flaskwebgui. Use flaskwebgui only when you are finished the app(test the app) and ready to deploy.
+Also, during development of your app do that in the normal way you do a Flask app without flaskwebgui. Use flaskwebgui only when you are finished the app (test the app) and ready to deploy.
 
-**flaskwebgui doesn't interfere with your way of doing a flask application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan)
+**flaskwebgui doesn't interfere with your way of doing a flask application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
 
 ### Distribution
 
