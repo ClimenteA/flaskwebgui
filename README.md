@@ -34,7 +34,7 @@ ui = FlaskUI(app)
 # do your logic as usual in Flask
 @app.route("/")
 def index():
-return "It works!"
+  return "It works!"
 
 # call the 'run' method
 ui.run()
