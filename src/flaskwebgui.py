@@ -37,7 +37,7 @@ class FlaskUI:
         self.app_mode = app_mode
         self.browser_path = browser_path
         self.computed_browser_path = self.find_browser(browser_path)
-        self.absolute_browser_directory = os.path.join(os.path.dirname(os.path.abspath(browser_path)), "bin")
+        self.absolute_browser_directory = os.path.dirname(os.path.abspath(browser_path))
         self.server = server
         self.host = host
         self.port = port
@@ -46,7 +46,7 @@ class FlaskUI:
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
         self.flask_thread = Thread(target=self.run_flask) #daemon doesn't work...
         self.browser_thread = Thread(target=self.open_browser)
-        self.close_flask_thread = Thread(target=self.close_server)
+        self.close_server_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
 
 
@@ -54,7 +54,7 @@ class FlaskUI:
         """
             Start the flask and gui threads instantiated in the constructor func
         """
-
+        
         self.flask_thread.start()    
         self.browser_thread.start()
         
@@ -66,11 +66,11 @@ class FlaskUI:
                 break
             count += 1
 
-        self.close_flask_thread.start()
+        self.close_server_thread.start()
 
         self.browser_thread.join()
         self.flask_thread.join()
-        self.close_flask_thread.join()
+        self.close_server_thread.join()
 
     
     def run_flask(self):
@@ -92,23 +92,6 @@ class FlaskUI:
                 raise Exception("{} must be a function which starts the webframework server!".format(self.server))
         else:
             self.server()
-
-
-    def get_files_from_cwd(self):
-        """
-            Get a list of files from the current directory
-        """
-
-        root_path = os.getcwd()
-
-        allfiles = []
-        for root, dirs, files in os.walk(root_path):
-            for file in files:
-                path_tofile = os.path.join(root, file)
-                allfiles.append(path_tofile)
-
-        return allfiles
-
 
 
     def get_default_chrome_path(self):
@@ -227,6 +210,11 @@ class FlaskUI:
             Check if chrome is opened / Improv daemon not working
         """
         try:
+            
+            #TODO maybe some calls from javascript to a flask/django url will work better to 
+            # check if flaskwebgui browser is still up, 
+            # the user will add just flaskwebgui.js  for this to work
+
             # If user specified browser path
             if os.path.isfile(self.browser_path):
                 return len(list(filter(lambda p : 'chrome' in p.name() and p.cwd() == self.absolute_browser_directory, psutil.process_iter()))) == 1
@@ -256,3 +244,26 @@ class FlaskUI:
 
         #Kill current python process
         psutil.Process(os.getpid()).kill()
+
+
+
+
+
+
+
+
+
+    # def get_files_from_cwd(self):
+    #     """
+    #         Get a list of files from the current directory
+    #     """
+
+    #     root_path = os.getcwd()
+
+    #     allfiles = []
+    #     for root, dirs, files in os.walk(root_path):
+    #         for file in files:
+    #             path_tofile = os.path.join(root, file)
+    #             allfiles.append(path_tofile)
+
+    #     return allfiles
