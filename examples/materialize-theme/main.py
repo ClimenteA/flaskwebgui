@@ -12,7 +12,7 @@ def hello():
 
 @app.route("/home", methods=['GET'])
 def home(): 
-    return "Home"
+    return render_template('home.html')
 
 
 

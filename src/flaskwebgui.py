@@ -1,8 +1,24 @@
+from http.server import BaseHTTPRequestHandler, HTTPServer
+
 import os, time, psutil
 import sys, subprocess as sps
-
 from threading import Thread
 
+from datetime import datetime
+
+
+class S(BaseHTTPRequestHandler):
+    def _set_response(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+    def do_GET(self):
+        self._set_response()
+        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
+        with open("bo.txt", "w") as f:
+            f.write(f"{datetime.now()}")
+        
 
 class FlaskUI:
     """
@@ -35,9 +51,7 @@ class FlaskUI:
         self.fullscreen = fullscreen
         self.maximized = maximized
         self.app_mode = app_mode
-        self.browser_path = browser_path
-        self.computed_browser_path = self.find_browser(browser_path)
-        self.absolute_browser_directory = os.path.dirname(os.path.abspath(browser_path))
+        self.browser_path = browser_path if browser_path else self.get_default_chrome_path()  
         self.server = server
         self.host = host
         self.port = port
@@ -48,24 +62,15 @@ class FlaskUI:
         self.browser_thread = Thread(target=self.open_browser)
         self.close_server_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
-
+        
 
     def run(self):
         """
             Start the flask and gui threads instantiated in the constructor func
         """
-        
-        self.flask_thread.start()    
-        self.browser_thread.start()
-        
-        #Wait for the browser to run (1 min)
-        count = 0
-        while not self.browser_runs():
-            time.sleep(1)
-            if count > 60:
-                break
-            count += 1
 
+        self.flask_thread.start()
+        self.browser_thread.start()
         self.close_server_thread.start()
 
         self.browser_thread.join()
@@ -77,12 +82,14 @@ class FlaskUI:
         """
             Run flask or other framework specified
         """
+
         if isinstance(self.server, str):
             if self.server.lower() == "flask":
                 if self.socketio:
                     self.socketio.run(self.flask_app, host=self.host, port=self.port)
                 else:
                     self.flask_app.run(host=self.host, port=self.port)
+
             elif self.server.lower() == "django":
                 if sys.platform in ['win32', 'win64']:
                     os.system("python manage.py runserver {}:{}".format(self.host, self.port))
@@ -150,120 +157,63 @@ class FlaskUI:
         return chrome_path
 
 
-    def find_browser(self, path):
-        """
-            Find a path to browser
-            Chrome/Chromium is prefered because it has a nice 'app' mode which looks like a desktop app
-        """
-
-        # Return browser_path param
-        if os.path.isfile(path):
-            return path
-
-        # Raise error if browser path param doesn't exist
-        if path != "":
-            raise Exception("Path {} does not exist!".format(path))
-
-        # If there's no specified browser path, close opened browser processes and wait for them to be closed
-        print("You are running the app in the development mode. All opened Chrome processes will be closed. To avoid that, put portable Chromium near to the application file and specify its path.")
-        self.close_chromes()
-
-        # If browser_path not completed try to find default chrome installation
-        return self.get_default_chrome_path()
-
-
     def open_browser(self):
         """
             Open the browser selected (by default it looks for chrome)
         """
 
-        if self.computed_browser_path:
-            try:
-                if self.app_mode:
-
-                    if self.fullscreen:
-                        self.BROWSER_PROCESS = sps.Popen([self.computed_browser_path, "--new-window", "--start-fullscreen", '--app={}'.format(self.localhost)],
-                                                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-                    elif self.maximized:
-                        self.BROWSER_PROCESS = sps.Popen([self.computed_browser_path, "--new-window", "--start-maximized", '--app={}'.format(self.localhost)],
-                                                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-                    else:
-                        self.BROWSER_PROCESS = sps.Popen([self.computed_browser_path, "--new-window", "--window-size={},{}".format(self.width, self.height),
-                                                          '--app={}'.format(self.localhost)],
-                                                         stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-                else:
-                    self.BROWSER_PROCESS = sps.Popen([self.computed_browser_path, self.localhost],
-                                                     stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-            except:
-                self.BROWSER_PROCESS = sps.Popen([self.computed_browser_path, self.localhost],
-                                                 stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+        if self.app_mode and self.fullscreen:
+            self.BROWSER_PROCESS = sps.Popen([self.browser_path, "--new-window", "--start-fullscreen", '--app={}'.format(self.localhost)],
+                                                stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+        elif self.app_mode and self.maximized:
+            self.BROWSER_PROCESS = sps.Popen([self.browser_path, "--new-window", "--start-maximized", '--app={}'.format(self.localhost)],
+                                                    stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+        elif self.app_mode:
+            self.BROWSER_PROCESS = sps.Popen([self.browser_path, "--new-window", "--window-size={},{}".format(self.width, self.height),
+                                                    '--app={}'.format(self.localhost)],
+                                                    stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
             import webbrowser
             webbrowser.open_new(self.localhost)
-
-    def close_chromes(self):
-        chrome_pids = [p.info['pid'] for p in psutil.process_iter(attrs=['pid', 'name']) if 'chrome' in p.info['name']]
-        [psutil.Process(pid).kill() for pid in chrome_pids]
-
-    def browser_runs(self):
-        """
-            Check if chrome is opened / Improv daemon not working
-        """
-        try:
-            
-            #TODO maybe some calls from javascript to a flask/django url will work better to 
-            # check if flaskwebgui browser is still up, 
-            # the user will add just flaskwebgui.js  for this to work
-
-            # If user specified browser path
-            if os.path.isfile(self.browser_path):
-                return len(list(filter(lambda p : 'chrome' in p.name() and p.cwd() == self.absolute_browser_directory, psutil.process_iter()))) == 1
-            # If user didn't specify browser path (development mode)
-            else:
-                for p in psutil.process_iter():
-                    if 'chrome' in p.name() and self.BROWSER_PROCESS.pid == p.pid:
-                        if p.status() is not 'zombie':
-                            return True
-                        else:
-                            return False
-
-        except: #Fails untill server and browser starts
-            return True
-
+   
 
     def close_server(self):
         """
-            If browser process is not running close flask server
+            If no get request comes from browser on port + 1 
+            then after 10 seconds the server will be closed 
         """
 
-        while self.browser_runs():
+        httpd = HTTPServer(('', self.port+1), S)   
+        httpd.timeout = 10     
+
+        while True:
+        
+            httpd.handle_request()
+            
+            print("Checking Gui status")
+            
+            if os.path.isfile("bo.txt"):
+                with open("bo.txt", "r") as f:
+                    bo = f.read().splitlines()[0]
+                diff = datetime.now() - datetime.strptime(bo, "%Y-%m-%d %H:%M:%S.%f")
+
+                if diff.total_seconds() > 10:
+                    print("Gui was closed.")
+                    break
+            
+            print("Gui still open.")
+            
             time.sleep(2)
+
 
         if self.on_exit:
             self.on_exit()
 
+
         #Kill current python process
+        if os.path.isfile("bo.txt"):
+            #bo.txt is used to save timestamp used to check if browser is open
+            os.remove("bo.txt")
+
         psutil.Process(os.getpid()).kill()
 
-
-
-
-
-
-
-
-
-    # def get_files_from_cwd(self):
-    #     """
-    #         Get a list of files from the current directory
-    #     """
-
-    #     root_path = os.getcwd()
-
-    #     allfiles = []
-    #     for root, dirs, files in os.walk(root_path):
-    #         for file in files:
-    #             path_tofile = os.path.join(root, file)
-    #             allfiles.append(path_tofile)
-
-    #     return allfiles

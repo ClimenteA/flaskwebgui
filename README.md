@@ -20,7 +20,24 @@ Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/Clime
 
 ### Usage with Flask
 
-Check this [video](https://www.youtube.com/watch?v=dCHmSJQqD_w)! 
+Add bellow js code to your base.html (or to your script.js file)
+
+```
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    var url = 'http://127.0.0.1:5001/GUI-is-still-open'; 
+    fetch(url, { mode: 'no-cors'});
+    setInterval(function(){ fetch(url, { mode: 'no-cors'});}, 5000)();
+
+});
+
+</script>
+
+```
+
+In your main python file add bellow 3 lines of code
 
 ```
 from flask import Flask
@@ -43,6 +60,8 @@ ui.run()
 ### Usage with Django
 
 Make a file 'gui.py'(file name not important) next to 'manage.py' file in the django project folder.
+
+Add the js code like we did it up.
 
 Inside 'gui.py' file add these 2 lines of code:
 
@@ -78,8 +97,9 @@ Default FlaskUI class parameters:
 
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
-* **browser_path=""** ==> path to `browser.exe` (can be absolute`C:/browser_folder/chrome.exe` or relative `chromium.exe`) - if not specified, the app will run in development mode and all running Chrome processes will be killed. To avoid this behaviour, put portable Chromium `*.exe` file in the app directory and specify a path to it.
-* **server="flask"** ==> the default backend framework is flask (django is suported also), but you can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
+* **browser_path=""** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe` 
+
+* **server="flask"** ==> the default backend framework is flask (django is suported also), you can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
 
 * **host="127.0.0.1"** ==> specify other if needed
 
@@ -89,18 +109,7 @@ Default FlaskUI class parameters:
 
 Should work on windows/linux/mac with no isssues.
 
-If browser is not found, this would be quick fix: `FlaskUI (app, browser_path=r"path/to/chrome.exe")`
-
-### The recommended way of using flaskwebgui
-
-- Download portable [Chromium](https://chromium.woolyss.com/) for the your targeted os,
-- Place the extracted portable app next to `main.py` file,
-- Specify the `browser_path` parameter.
-
-In this way when you distribute it, you don't need users to have chrome installed, it will work like a portable app.
-
-Also, during development of your app do that in the normal way you do a Flask app without flaskwebgui. Use flaskwebgui only when you are finished the app (test the app) and ready to deploy.
-
+Develop your app as you would normally do, add flaskwebgui at the end or for tests.
 **flaskwebgui doesn't interfere with your way of doing a flask application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
 
 ### Distribution
@@ -111,7 +120,7 @@ You can distribute it as a standalone desktop app with pyinstaller or [pyvan](ht
 It's a combination of https://github.com/Widdershin/flask-desktop and https://github.com/ChrisKnott/Eel
 
 flaskwebgui just uses threading to start a flask server and the browser in app mode (for chrome).
-It has some advantages over flask-desktop because it doesn't use PyQt5, so you won't have any issues regarding licensing and over Eel because you don't need to learn any logic other than Flask.
+It has some advantages over flask-desktop because it doesn't use PyQt5, so you won't have any issues regarding licensing and over Eel because you don't need to learn any logic other than Flask/Django.
 
 **Submit any questions/issues you have! Fell free to fork it and improve it!**
 
