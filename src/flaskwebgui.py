@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-import os, time, psutil
+import os, time, signal
 import sys, subprocess as sps
 from threading import Thread
 
@@ -127,7 +127,12 @@ class FlaskUI:
 
 
     def find_chrome_linux(self):
-        import whichcraft as wch
+        try:
+            import whichcraft as wch
+        except:
+            raise Exception("whichcraft module is not installed/found  \
+                             please fill browser_path parameter or install whichcraft!")
+
         chrome_names = ['chromium-browser',
                         'chromium',
                         'google-chrome',
@@ -215,5 +220,20 @@ class FlaskUI:
             #bo.txt is used to save timestamp used to check if browser is open
             os.remove("bo.txt")
 
-        psutil.Process(os.getpid()).kill()
+        try:
+            import psutil
+            psutil.Process(os.getpid()).kill()
+        except:
+            os.kill(os.getpid(), signal.SIGSTOP) 
+
+
+
+
+
+
+
+
+
+
+
 
