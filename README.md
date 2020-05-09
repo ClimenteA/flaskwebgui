@@ -101,9 +101,7 @@ Default FlaskUI class parameters:
 
 * **server="flask"** ==> the default backend framework is flask (django is suported also), you can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
 
-* **host="127.0.0.1"** ==> specify other if needed
-
-* **port=5000** ==> specify other if needed
+* **port=5000** ==> specify other if needed, make sure to add port+1 in the js script
 
 * **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
 
