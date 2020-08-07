@@ -1,19 +1,12 @@
-<p align="center">
-  <img src="flaskwebgui.png">
-</p>
-
-<p align="center">
-  <h2> Create desktop applications with Flask (or Django)!</h2>
+## Create desktop applications with Flask/Django!
   
-  [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
-
-</p>
+[![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 
 
 
 ### Install
 
-```
+``` py
 pip install flaskwebgui
 ```
 Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/ClimenteA/flaskwebgui/master/src/flaskwebgui.py) and place it where you need. 
@@ -22,7 +15,7 @@ Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/Clime
 
 Add bellow js code to your base.html (or to your script.js file)
 
-```
+``` js
 <script>
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -39,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 In your main python file add bellow 3 lines of code
 
-```
+``` py
 from flask import Flask
 from flaskwebgui import FlaskUI #get the FlaskUI class
 
@@ -65,7 +58,7 @@ Add the js code like we did it up.
 
 Inside 'gui.py' file add these 2 lines of code:
 
-```
+``` py
 
 from flaskwebgui import FlaskUI #import FlaskUI class
 
@@ -77,7 +70,7 @@ FlaskUI(server='django').run()
 
 Next run from your terminal the bellow command:
 
-```
+``` py
 python gui.py
 ```
 
