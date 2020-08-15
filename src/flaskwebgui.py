@@ -10,7 +10,8 @@ from datetime import datetime
 temp_dir = tempfile.TemporaryDirectory()
 keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
 
-log = logging.getLogger()
+server_log = logging.getLogger('BaseHTTPRequestHandler')
+log = logging.getLogger('flaskwebgui')
 
 class S(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
@@ -18,7 +19,7 @@ class S(BaseHTTPRequestHandler):
         Overrides logging in server.py so it doesn't spit out get reauests to stdout.
         This allows the caller to filter out what appears on the console.
         '''
-        log.debug(f"{self.address_string()} - f{format % args}")
+        server_log.debug(f"{self.address_string()} - {format % args}")
 
     def _set_response(self):
         self.send_response(200)
