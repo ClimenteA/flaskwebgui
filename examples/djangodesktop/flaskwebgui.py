@@ -1,11 +1,14 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-import os, time, psutil
+import os, time, signal
 import sys, subprocess as sps
 from threading import Thread
 
 from datetime import datetime
 
+import tempfile
+temp_dir = tempfile.TemporaryDirectory()
+keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
 
 class S(BaseHTTPRequestHandler):
     def _set_response(self):
@@ -16,7 +19,7 @@ class S(BaseHTTPRequestHandler):
     def do_GET(self):
         self._set_response()
         self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
-        with open("bo.txt", "w") as f:
+        with open(keepalive_file, "w") as f:
             f.write(f"{datetime.now()}")
         
 
@@ -127,7 +130,12 @@ class FlaskUI:
 
 
     def find_chrome_linux(self):
-        import whichcraft as wch
+        try:
+            import whichcraft as wch
+        except:
+            raise Exception("whichcraft module is not installed/found  \
+                             please fill browser_path parameter or install whichcraft!")
+
         chrome_names = ['chromium-browser',
                         'chromium',
                         'google-chrome',
@@ -192,8 +200,8 @@ class FlaskUI:
             
             print("Checking Gui status")
             
-            if os.path.isfile("bo.txt"):
-                with open("bo.txt", "r") as f:
+            if os.path.isfile(keepalive_file):
+                with open(keepalive_file, "r") as f:
                     bo = f.read().splitlines()[0]
                 diff = datetime.now() - datetime.strptime(bo, "%Y-%m-%d %H:%M:%S.%f")
 
@@ -211,9 +219,24 @@ class FlaskUI:
 
 
         #Kill current python process
-        if os.path.isfile("bo.txt"):
+        if os.path.isfile(keepalive_file):
             #bo.txt is used to save timestamp used to check if browser is open
-            os.remove("bo.txt")
+            os.remove(keepalive_file)
 
-        psutil.Process(os.getpid()).kill()
+        try:
+            import psutil
+            psutil.Process(os.getpid()).kill()
+        except:
+            os.kill(os.getpid(), signal.SIGSTOP) 
+
+
+
+
+
+
+
+
+
+
+
 
