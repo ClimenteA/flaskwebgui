@@ -2,15 +2,25 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import os, time, signal
 import sys, subprocess as sps
+import logging
+import tempfile
 from threading import Thread
-
 from datetime import datetime
 
-import tempfile
 temp_dir = tempfile.TemporaryDirectory()
 keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
 
+server_log = logging.getLogger('BaseHTTPRequestHandler')
+log = logging.getLogger('flaskwebgui')
+
 class S(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        '''
+        Overrides logging in server.py so it doesn't spit out get reauests to stdout.
+        This allows the caller to filter out what appears on the console.
+        '''
+        server_log.debug(f"{self.address_string()} - {format % args}")
+
     def _set_response(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -197,8 +207,8 @@ class FlaskUI:
         while True:
         
             httpd.handle_request()
-            
-            print("Checking Gui status")
+
+            log.debug("Checking Gui status")
             
             if os.path.isfile(keepalive_file):
                 with open(keepalive_file, "r") as f:
@@ -206,10 +216,10 @@ class FlaskUI:
                 diff = datetime.now() - datetime.strptime(bo, "%Y-%m-%d %H:%M:%S.%f")
 
                 if diff.total_seconds() > 10:
-                    print("Gui was closed.")
+                    log.info("Gui was closed.")
                     break
-            
-            print("Gui still open.")
+
+            log.debug("Gui still open.")
             
             time.sleep(2)
 
