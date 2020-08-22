@@ -152,15 +152,21 @@ class FlaskUI:
         import winreg as reg
         reg_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
 
+        chrome_path = None
+
         for install_type in reg.HKEY_CURRENT_USER, reg.HKEY_LOCAL_MACHINE:
             try:
                 reg_key = reg.OpenKey(install_type, reg_path, 0, reg.KEY_READ)
                 chrome_path = reg.QueryValue(reg_key, None)
                 reg_key.Close()
-            except WindowsError:
+            except WindowsError as e:
                 chrome_path = None
+                log.exception(e)
             else:
-                break
+                if chrome_path and len(chrome_path) > 0:
+                    break
+
+        log.debug(f"Chrome path detected as: {chrome_path}")
 
         return chrome_path
 
@@ -171,17 +177,25 @@ class FlaskUI:
         """
 
         if self.app_mode and self.fullscreen:
-            self.BROWSER_PROCESS = sps.Popen([self.browser_path, "--new-window", "--start-fullscreen", '--app={}'.format(self.localhost)],
+            options = [self.browser_path, "--new-window", "--start-fullscreen", '--app={}'.format(self.localhost)]
+            log.debug(f"Opening browser in app mode full screen with: {options}")
+            self.BROWSER_PROCESS = sps.Popen(options,
                                                 stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         elif self.app_mode and self.maximized:
-            self.BROWSER_PROCESS = sps.Popen([self.browser_path, "--new-window", "--start-maximized", '--app={}'.format(self.localhost)],
+            options = [self.browser_path, "--new-window", "--start-maximized", '--app={}'.format(self.localhost)]
+            log.debug(f"Opening browser in app mode maximised with: {options}")
+
+            self.BROWSER_PROCESS = sps.Popen(options,
                                                     stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         elif self.app_mode:
-            self.BROWSER_PROCESS = sps.Popen([self.browser_path, "--new-window", "--window-size={},{}".format(self.width, self.height),
-                                                    '--app={}'.format(self.localhost)],
+            options = [self.browser_path, "--new-window", "--window-size={},{}".format(self.width, self.height),
+                                                    '--app={}'.format(self.localhost)]
+            log.debug(f"Opening browser in app mode with: {options}")
+            self.BROWSER_PROCESS = sps.Popen(options,
                                                     stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
             import webbrowser
+            log.debug(f"Falling back to python web browser")
             webbrowser.open_new(self.localhost)
    
 
