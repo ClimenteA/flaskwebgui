@@ -163,6 +163,7 @@ class FlaskUI:
         reg_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
 
         chrome_path = None
+        last_exception = None
 
         for install_type in reg.HKEY_CURRENT_USER, reg.HKEY_LOCAL_MACHINE:
             try:
@@ -170,13 +171,19 @@ class FlaskUI:
                 chrome_path = reg.QueryValue(reg_key, None)
                 reg_key.Close()
             except WindowsError as e:
-                chrome_path = None
-                log.exception(e)
+                last_exception = e
             else:
                 if chrome_path and len(chrome_path) > 0:
                     break
 
-        log.debug(f"Chrome path detected as: {chrome_path}")
+        # Only log some debug info if we failed completely to find chrome
+        if not chrome_path:
+            if last_exception:
+                log.exception(last_exception)
+            log.error("Failed to detect chrome location from registry")
+        else:
+
+            log.debug(f"Chrome path detected as: {chrome_path}")
 
         return chrome_path
 
