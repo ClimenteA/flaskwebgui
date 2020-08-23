@@ -170,34 +170,30 @@ class FlaskUI:
 
         return chrome_path
 
-
     def open_browser(self):
         """
             Open the browser selected (by default it looks for chrome)
         """
 
-        if self.app_mode and self.fullscreen:
-            options = [self.browser_path, "--new-window", "--start-fullscreen", '--app={}'.format(self.localhost)]
-            log.debug(f"Opening browser in app mode full screen with: {options}")
-            self.BROWSER_PROCESS = sps.Popen(options,
-                                                stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-        elif self.app_mode and self.maximized:
-            options = [self.browser_path, "--new-window", "--start-maximized", '--app={}'.format(self.localhost)]
-            log.debug(f"Opening browser in app mode maximised with: {options}")
+        if self.app_mode:
+            launch_options = None
+            if self.fullscreen:
+                launch_options = ["--start-fullscreen"]
+            elif self.maximized:
+                launch_options = ["--start-maximized"]
+            else:
+                launch_options = ["--window-size={},{}".format(self.width, self.height)]
 
+            options = [self.browser_path, "--new-window", '--app={}'.format(self.localhost)]
+            options.extend(launch_options)
+
+            log.debug(f"Opening chrome browser with: {options}")
             self.BROWSER_PROCESS = sps.Popen(options,
-                                                    stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
-        elif self.app_mode:
-            options = [self.browser_path, "--new-window", "--window-size={},{}".format(self.width, self.height),
-                                                    '--app={}'.format(self.localhost)]
-            log.debug(f"Opening browser in app mode with: {options}")
-            self.BROWSER_PROCESS = sps.Popen(options,
-                                                    stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+                                             stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
             import webbrowser
-            log.debug(f"Falling back to python web browser")
+            log.debug(f"Opening python web browser")
             webbrowser.open_new(self.localhost)
-   
 
     def close_server(self):
         """
