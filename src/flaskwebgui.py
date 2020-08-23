@@ -13,13 +13,15 @@ keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
 server_log = logging.getLogger('BaseHTTPRequestHandler')
 log = logging.getLogger('flaskwebgui')
 
+
 class S(BaseHTTPRequestHandler):
-    def log_message(self, format, *args):
-        '''
-        Overrides logging in server.py so it doesn't spit out get reauests to stdout.
-        This allows the caller to filter out what appears on the console.
-        '''
-        server_log.debug(f"{self.address_string()} - {format % args}")
+
+    def log_message(self, format_str, *args):
+        """
+            Overrides logging in server.py so it doesn't spit out get requests to stdout.
+            This allows the caller to filter out what appears on the console.
+        """
+        server_log.debug(f"{self.address_string()} - {format_str % args}")
 
     def _set_response(self):
         self.send_response(200)
@@ -56,7 +58,6 @@ class FlaskUI:
 
     """
 
-
     def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None, on_exit=None):
         self.flask_app = app
         self.width = str(width)
@@ -76,7 +77,6 @@ class FlaskUI:
         self.close_server_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
         
-
     def run(self):
         """
             Start the flask and gui threads instantiated in the constructor func
@@ -90,7 +90,6 @@ class FlaskUI:
         self.flask_thread.join()
         self.close_server_thread.join()
 
-    
     def run_flask(self):
         """
             Run flask or other framework specified
@@ -113,21 +112,20 @@ class FlaskUI:
         else:
             self.server()
 
-
     def get_default_chrome_path(self):
         """
             Credits for get_instance_path, find_chrome_mac, find_chrome_linux, find_chrome_win funcs
             got from: https://github.com/ChrisKnott/Eel/blob/master/eel/chrome.py
         """
         if sys.platform in ['win32', 'win64']:
-            return self.find_chrome_win()
+            return FlaskUI.find_chrome_win()
         elif sys.platform == 'darwin':
-            return self.find_chrome_mac()
+            return FlaskUI.find_chrome_mac()
         elif sys.platform.startswith('linux'):
-            return self.find_chrome_linux()
+            return FlaskUI.find_chrome_linux()
 
-
-    def find_chrome_mac(self):
+    @staticmethod
+    def find_chrome_mac():
         default_dir = r'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
         if os.path.exists(default_dir):
             return default_dir
@@ -138,13 +136,13 @@ class FlaskUI:
             return alternate_dirs[0] + '/Contents/MacOS/Google Chrome'
         return None
 
-
-    def find_chrome_linux(self):
+    @staticmethod
+    def find_chrome_linux():
         try:
             import whichcraft as wch
-        except:
+        except Exception as e:
             raise Exception("whichcraft module is not installed/found  \
-                             please fill browser_path parameter or install whichcraft!")
+                             please fill browser_path parameter or install whichcraft!") from e
 
         chrome_names = ['chromium-browser',
                         'chromium',
@@ -157,12 +155,13 @@ class FlaskUI:
                 return chrome
         return None
 
-
-    def find_chrome_win(self):
+    @staticmethod
+    def find_chrome_win():
         import winreg as reg
         reg_path = r'SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
 
         chrome_path = None
+        last_exception = None
 
         for install_type in reg.HKEY_CURRENT_USER, reg.HKEY_LOCAL_MACHINE:
             try:
@@ -170,13 +169,18 @@ class FlaskUI:
                 chrome_path = reg.QueryValue(reg_key, None)
                 reg_key.Close()
             except WindowsError as e:
-                chrome_path = None
-                log.exception(e)
+                last_exception = e
             else:
                 if chrome_path and len(chrome_path) > 0:
                     break
 
-        log.debug(f"Chrome path detected as: {chrome_path}")
+        # Only log some debug info if we failed completely to find chrome
+        if not chrome_path:
+            log.exception(last_exception)
+            log.error("Failed to detect chrome location from registry")
+        else:
+
+            log.debug(f"Chrome path detected as: {chrome_path}")
 
         return chrome_path
 
@@ -233,14 +237,12 @@ class FlaskUI:
             
             time.sleep(2)
 
-
         if self.on_exit:
             self.on_exit()
 
-
-        #Kill current python process
+        # Kill current python process
         if os.path.isfile(keepalive_file):
-            #bo.txt is used to save timestamp used to check if browser is open
+            # bo.txt is used to save timestamp used to check if browser is open
             os.remove(keepalive_file)
 
         try:
@@ -248,15 +250,3 @@ class FlaskUI:
             psutil.Process(os.getpid()).kill()
         except:
             os.kill(os.getpid(), signal.SIGSTOP) 
-
-
-
-
-
-
-
-
-
-
-
-
