@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-import os, time, signal, re
+import psutil
+import os, time, re
 import sys, subprocess as sps
 import logging
 import tempfile
@@ -8,30 +9,45 @@ from threading import Thread
 from datetime import datetime
 
 
-def get_pids(port):
-    # lsof -i :5000
-    # kill -9 PID
+# ports = ['1234','5678','9101']
 
-    command = "lsof -i :%s | awk '{print $2}'" % port
-    pids = sps.check_output(command, shell=True)
-    pids = pids.decode()
 
-    if not pids: return
+# popen = sps.Popen(['netstat', '-lpn'], shell=False, stdout=sps.PIPE)
+# (data, err) = popen.communicate()
 
-    pids = re.sub(' +', ' ', pids)
-    for pid in pids.split('\n'):
-        try:
-            yield int(pid)
-        except:
-            pass
+# pattern = "^tcp.*((?:{0})).* (?P[0-9]*)/.*$"
+# pattern = pattern.format(')|(?:'.join(ports))
+# prog = re.compile(pattern)
+# for line in data.split('\n'):
+#     match = re.match(prog, line)
+#     if match:
+#         pid = match.group('pid')
+#         sps.Popen(['kill', '-9', pid])
+
+
+# def get_pids(port):
+#     # lsof -i :5000
+#     # kill -9 PID
+
+#     command = "lsof -i :%s | awk '{print $2}'" % port
+#     pids = sps.check_output(command, shell=True).decode()
+#     if not pids: return
+
+#     pids = re.sub(' +', ' ', pids).split('\n')
+    
+#     for port in ports:
+#         pids = set(get_pids(port))
+#         command = 'kill -9 {}'.format(' '.join([str(pid) for pid in pids]))
+#         os.system(command)
 
 
 def kill_pids_by_ports(*ports):
-    for port in ports:
-        pids = set(get_pids(port))
-        command = 'kill -9 {}'.format(' '.join([str(pid) for pid in pids]))
-        os.system(command)
-
+    connections = psutil.net_connections()
+    for conn in connections:
+        open_port = conn.laddr[1]
+        if open_port in ports:
+            psutil.Process(conn.pid).kill()
+            
 
 temp_dir = tempfile.TemporaryDirectory()
 keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
@@ -270,6 +286,7 @@ class FlaskUI:
         if os.path.isfile(keepalive_file):
             # bo.txt is used to save timestamp used to check if browser is open
             os.remove(keepalive_file)
+
 
         kill_pids_by_ports(self.port, self.port+1)
     
