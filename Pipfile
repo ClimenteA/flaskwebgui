@@ -1,0 +1,16 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+whichcraft = "*"
+
+[dev-packages]
+flask = "*"
+django = "*"
+fastapi = "*"
+uvicorn = "*"
+
+[requires]
+python_version = "3.8"
