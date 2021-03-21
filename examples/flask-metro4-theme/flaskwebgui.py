@@ -2,15 +2,8 @@ import psutil
 import os, time
 import sys, subprocess as sps
 import logging
-from threading import Thread
-from datetime import datetime
-import asyncio
-import datetime
-import websockets
-import logging
-import json
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
 
         
 class FlaskUI:
@@ -36,7 +29,20 @@ class FlaskUI:
 
     """
 
-    def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None, on_exit=None):
+    def __init__(self, 
+        app=None, 
+        width=800, 
+        height=600, 
+        maximized=False, 
+        fullscreen=False, 
+        browser_path="", 
+        app_mode=True,  
+        server="flask", 
+        host="127.0.0.1", 
+        port=5000, 
+        socketio=None, 
+        on_exit=None
+        ):
         self.flask_app = app
         self.width = str(width)
         self.height= str(height)
@@ -52,19 +58,15 @@ class FlaskUI:
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
         self.BROWSER_PROCESS = None
         
+
     def run(self):
         """
             Start the flask and gui threads instantiated in the constructor func
         """
-        
-
         with ThreadPoolExecutor() as tex:
             tex.submit(self.run_web_server)
             tex.submit(self.open_browser)
             tex.submit(self.keep_alive_web_server)
-            
-
-        
 
     def run_web_server(self):
         """
@@ -162,8 +164,11 @@ class FlaskUI:
     def open_browser(self):
         """
             Open the browser selected (by default it looks for chrome)
+            # https://peter.sh/experiments/chromium-command-line-switches/
         """
 
+        temp_profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
+        
         if self.app_mode:
             launch_options = None
             if self.fullscreen:
@@ -171,13 +176,22 @@ class FlaskUI:
             elif self.maximized:
                 launch_options = ["--start-maximized"]
             else:
-                launch_options = ["--window-size={},{}".format(self.width, self.height)]
+                launch_options = [f"--window-size={self.width},{self.height}"]
 
-            options = [self.browser_path, "--new-window", '--app={}'.format(self.localhost)]
-            options.extend(launch_options)
+            options = [
+                self.browser_path, 
+                f"--user-data-dir={temp_profile_dir}",
+                "--new-window", 
+                '--no-sandbox',
+                "--no-first-run",
+                # "--window-position=0,0"
+                ] + launch_options + [f'--app={self.localhost}']
 
-            self.BROWSER_PROCESS = sps.Popen(options,
-                                             stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+
+            # logging.warning(options)
+            
+            self.BROWSER_PROCESS = sps.Popen(options, stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+
         else:
             import webbrowser
             webbrowser.open_new(self.localhost)
@@ -192,55 +206,23 @@ class FlaskUI:
                 psutil.Process(conn.pid).kill()
 
 
-
     def keep_alive_web_server(self):
 
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-        async def keep_alive(self, websocket, path):
+        while 'pid' not in dir(self.BROWSER_PROCESS):
+            time.sleep(1)
+
+        while True:
+            pid_running = psutil.pid_exists(self.BROWSER_PROCESS.pid)
+            pid_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
             
-            logging.warning('waiting..')
+            if (
+                pid_running == False
+                or 
+                pid_memory_usage == 0
+            ): break
 
-            async for msg in websocket:
-                data = json.loads(msg)
-                
-                logging.warning(data)
-
-                last_request_time = datetime.strptime(data['timestamp'], "%Y-%m-%d %H:%M:%S")
-                diff = datetime.now() - last_request_time
-
-                if diff.total_seconds() > 10:
-                    if self.on_exit: self.on_exit()
-                    FlaskUI.kill_pids_by_ports(self.port, self.port+1)
-        
-
-        server = websockets.serve(keep_alive, self.host, self.port+1)
-        loop.run_coroutine_threadsafe(server)
-        loop.run_forever()
-
-        # loop.run_until_complete(server)
-        # loop.run_forever()
-
-        # asyncio.get_event_loop().run_until_complete(server)
-        # asyncio.get_event_loop().run_forever()
-
-        return server
-
-
-    # @staticmethod
-    # def keep_alive_web_server(self):
-    #     """
-    #         If no get request comes from browser on port + 1 
-    #         then after 10 seconds the server will be closed 
-    #     """
-
-    #     logging.warning("keep_alive_web_server")
-
-    #     server = self.create_ws_server()
-        # loop = asyncio.new_event_loop()
-        # asyncio.set_event_loop(loop)
-        # loop.run_until_complete(server)
-        # loop.run_forever()
-
-        
+            time.sleep(5)
+            
+        logging.warning("closing connections...")
+        if self.on_exit: self.on_exit()
+        FlaskUI.kill_pids_by_ports(self.port)

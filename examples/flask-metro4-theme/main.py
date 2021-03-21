@@ -4,6 +4,9 @@ from flaskwebgui import FlaskUI
 
 app = Flask(__name__)
 ui = FlaskUI(app, width=500, height=500) 
+# ui = FlaskUI(app, width=800, height=800) 
+# ui = FlaskUI(app, fullscreen=True) 
+# ui = FlaskUI(app, maximized=True) 
 
 
 @app.route("/")
