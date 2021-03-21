@@ -1,3 +1,4 @@
 from flaskwebgui import FlaskUI
+from main import app
 
-FlaskUI(start_server='flask').run()
+FlaskUI(app, width=600, height=500).run()

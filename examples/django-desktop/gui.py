@@ -1,3 +1,5 @@
 from flaskwebgui import FlaskUI
+from djangodesktop.wsgi import application as app
 
-FlaskUI(start_server='django').run()
+
+FlaskUI(app).run()

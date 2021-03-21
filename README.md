@@ -1,7 +1,6 @@
-## Create desktop applications with Flask/Django!
+## Create desktop applications with Flask/FastAPI/Django!
   
 [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
-
 
 
 ### Install
@@ -11,51 +10,111 @@ pip install flaskwebgui
 ```
 Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/ClimenteA/flaskwebgui/master/src/flaskwebgui.py) and place it where you need. 
 
-### Usage with Flask
+## Usage with Flask
 
-In your main python file add bellow 3 lines of code
+Let's say we have the following flask application:
+```py
+#main.py
 
-``` py
-from flask import Flask
-from flaskwebgui import FlaskUI #get the FlaskUI class
+from flask import Flask  
+from flask import render_template
+from flaskwebgui import FlaskUI # import FlaskUI
 
 app = Flask(__name__)
+ui = FlaskUI(app, width=500, height=500) # add app and parameters
 
-# Feed it the flask app instance 
-ui = FlaskUI(app)
 
-# do your logic as usual in Flask
 @app.route("/")
-def index():
-  return "It works!"
+def hello():  
+    return render_template('index.html')
 
-# call the 'run' method
-ui.run()
+@app.route("/home", methods=['GET'])
+def home(): 
+    return render_template('some_page.html')
+
+
+if __name__ == "__main__":
+    # app.run() for debug
+    ui.run()
+   
+```
+Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
+
+```py
+#gui.py
+
+from flaskwebgui import FlaskUI
+from main import app
+
+FlaskUI(app, width=600, height=500).run()
+```
+Next start the application with:
+```py
+python main.py 
+#or
+python gui.py #in case you created gui.py 
+```
+Application will start chrome in app mode, flask will be served by `waitress`.  
+
+## Usage with FastAPI
+
+Pretty much the same, bellow you have the `main.py` file:
+```py
+from fastapi import FastAPI
+from flaskwebgui import FlaskUI # import FlaskUI
+
+app = FastAPI()
+ui = FlaskUI(app) # feed app and parameters
+
+@app.get("/")
+def read_root():
+    return {"message": "Works with FastAPI also!"}
+
+if __name__ == "__main__":
+    ui.run()
 
 ```
-### Usage with Django
+Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
 
-Make a file 'gui.py'(file name not important) next to 'manage.py' file in the django project folder.
+```py
+#gui.py
 
-Add the js code like we did it up.
+from flaskwebgui import FlaskUI
+from main import app
 
-Inside 'gui.py' file add these 2 lines of code:
+FlaskUI(app, width=600, height=500).run()
+```
+Next start the application with:
+```py
+python main.py 
+#or
+python gui.py #in case you created gui.py 
+```
+Fastapi will be served by `uvicorn`.  
 
-``` py
 
-from flaskwebgui import FlaskUI #import FlaskUI class
+## Usage with Django
 
-#You can also call the run function on FlaskUI class instantiation
+Next to `manage.py` file create a `gui.py` file where you need to import `application` from project's `wsgi.py` file.
 
-FlaskUI(server='django').run()
+```py
+#gui.py
+
+from flaskwebgui import FlaskUI
+from project_name.wsgi import application
+
+FlaskUI(application).run()
 
 ```
-
-Next run from your terminal the bellow command:
-
-``` py
-python gui.py
+Next start the application with:
+```py
+python gui.py  
 ```
+Django will be served by `waitress`.  
+
+
+Checkout examples folder.
+
 
 ### Configurations
 
@@ -75,9 +134,9 @@ Default FlaskUI class parameters:
 
 * **browser_path=""** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
 
-* **server="flask"** ==> the default backend framework is flask (django is suported also), you can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
+* **start_server="flask"** ==> You can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
 
-* **port=5000** ==> specify other if needed, make sure to add port+1 in the js script
+* **port=5000** ==> specify other if needed
 
 * **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
 

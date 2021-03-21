@@ -95,7 +95,7 @@ class FlaskUI:
         if self.start_server not in self.frameworks:
             raise Exception(f"'start_server'({self.start_server}) not in {','.join(self.frameworks)} and also not a function which starts the webframework")
 
-        logging.warning(f"Detected webframework {self.start_server}")
+        logging.warning(f"Detected server {self.start_server}")
 
         if self.start_server == "flask-socketio":
             self.socketio.run(self.app, host=self.host, port=self.port)
