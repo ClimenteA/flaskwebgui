@@ -1,3 +1,4 @@
 from flaskwebgui import FlaskUI
+from main import app, socketio
 
-FlaskUI(start_server="fastapi").run()
+FlaskUI(app, socketio=socketio).run()

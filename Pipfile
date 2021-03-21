@@ -12,6 +12,7 @@ flask = "*"
 django = "*"
 fastapi = "*"
 uvicorn = "*"
+flask-socketio = "*"
 
 [requires]
 python_version = "3.8"

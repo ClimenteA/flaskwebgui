@@ -68,7 +68,10 @@ class FlaskUI:
         if sorted(dir(self.app)) == sorted(app_dir_fastapi):
             self.start_server="fastapi"
         if sorted(dir(self.app)) == sorted(app_dir_flask):
-            self.start_server="flask"
+            if self.socketio:
+                self.start_server="flask-socketio"
+            else:
+                self.start_server="flask"
         if sorted(dir(self.app)) == sorted(app_dir_django):
             self.start_server="django"
             

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "77ca7ade09b836c7b0c8ac2c8636cd0239d15ecfe4dee517764913651805a462"
+            "sha256": "2e5cbf927e25385b945a6f440e13fcd7c3572d6397683079fa5ebbcda7ae414d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -42,6 +42,14 @@
             "markers": "python_version >= '3.5'",
             "version": "==3.3.1"
         },
+        "bidict": {
+            "hashes": [
+                "sha256:4fa46f7ff96dc244abfc437383d987404ae861df797e2fd5b190e233c302be09",
+                "sha256:929d056e8d0d9b17ceda20ba5b24ac388e2a4d39802b87f9f4d3f45ecba070bf"
+            ],
+            "markers": "python_version >= '3.6'",
+            "version": "==0.21.2"
+        },
         "click": {
             "hashes": [
                 "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
@@ -73,6 +81,14 @@
             ],
             "index": "pypi",
             "version": "==1.1.2"
+        },
+        "flask-socketio": {
+            "hashes": [
+                "sha256:5c4319f5214ada20807857dc8fdf3dc7d2afe8d6dd38f5c516c72e2be47d2227",
+                "sha256:5d9a4438bafd806c5a3b832e74b69758781a8ee26fb6c9b1dbdda9b4fced432e"
+            ],
+            "index": "pypi",
+            "version": "==5.0.1"
         },
         "h11": {
             "hashes": [
@@ -183,6 +199,20 @@
             ],
             "markers": "python_full_version >= '3.6.1'",
             "version": "==1.8.1"
+        },
+        "python-engineio": {
+            "hashes": [
+                "sha256:759ec99d91b3d36b29596124c77ba7c063c7ab97685d318fb23a166d9a4b9187",
+                "sha256:bb575c1a3512b4b5d4706f3071d5cc36e592459e99a47d9a4b7faabeba941377"
+            ],
+            "version": "==4.0.1"
+        },
+        "python-socketio": {
+            "hashes": [
+                "sha256:338cc29abb6f3ca14c88f1f8d05ed27c690df4648f62062b299f92625bbf7093",
+                "sha256:8a7ed43bfdbbb266eb8a661a0c9648dc94bcd9689566ae3ee08bf98eca8987af"
+            ],
+            "version": "==5.1.0"
         },
         "pytz": {
             "hashes": [

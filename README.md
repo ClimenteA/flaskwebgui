@@ -1,7 +1,7 @@
 ## Create desktop applications with Flask/FastAPI/Django!
   
 [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
-
+[![PyPI](https://img.shields.io/pypi/v/flaskwebgui?color=blue)](https://pypi.org/project/flaskwebgui/)
 
 ### Install
 
@@ -55,6 +55,51 @@ python main.py
 python gui.py #in case you created gui.py 
 ```
 Application will start chrome in app mode, flask will be served by `waitress`.  
+
+
+## Usage with Flask-SocketIO
+
+Let's say we have the following SocketIO application:
+```py
+#main.py
+
+from flask import Flask
+from flask_socketio import SocketIO
+from flaskwebgui import FlaskUI
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
+
+
+@app.route("/")
+def index():  
+    return {"message": "flask_socketio"}
+
+
+if __name__ == '__main__':
+    # socketio.run(app) for development
+    FlaskUI(app, socketio=socketio).run()   
+
+```
+Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
+
+```py
+#gui.py
+
+from flaskwebgui import FlaskUI
+from main import app, socketio
+
+FlaskUI(app, socketio=socketio).run()
+```
+Next start the application with:
+```py
+python main.py 
+#or
+python gui.py #in case you created gui.py 
+```
+Application will start chrome in app mode, flask will be served by `socketio`.  
+
 
 ## Usage with FastAPI
 
@@ -112,8 +157,6 @@ python gui.py
 ```
 Django will be served by `waitress`.  
 
-
-Checkout examples folder.
 
 
 ### Configurations
