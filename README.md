@@ -13,23 +13,6 @@ Or download source file [flaskwebgui.py](https://raw.githubusercontent.com/Clime
 
 ### Usage with Flask
 
-Add bellow js code to your base.html (or to your script.js file)
-
-``` js
-<script>
-
-document.addEventListener('DOMContentLoaded', function() {
-
-    var url = 'http://127.0.0.1:5001/GUI-is-still-open'; 
-    fetch(url, { mode: 'no-cors'});
-    setInterval(function(){ fetch(url, { mode: 'no-cors'});}, 5000)();
-
-});
-
-</script>
-
-```
-
 In your main python file add bellow 3 lines of code
 
 ``` py

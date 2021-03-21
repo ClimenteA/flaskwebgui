@@ -1,43 +1,19 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
-import os, time, signal
+import psutil
+import os, time
 import sys, subprocess as sps
 import logging
 import tempfile
-from threading import Thread
-from datetime import datetime
-
-temp_dir = tempfile.TemporaryDirectory()
-keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
-
-server_log = logging.getLogger('BaseHTTPRequestHandler')
-log = logging.getLogger('flaskwebgui')
+from concurrent.futures import ThreadPoolExecutor
+from inspect import isfunction
 
 
-class S(BaseHTTPRequestHandler):
-
-    def log_message(self, format_str, *args):
-        """
-            Overrides logging in server.py so it doesn't spit out get requests to stdout.
-            This allows the caller to filter out what appears on the console.
-        """
-        server_log.debug(f"{self.address_string()} - {format_str % args}")
-
-    def _set_response(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-
-    def do_GET(self):
-        self._set_response()
-        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
-        with open(keepalive_file, "w") as f:
-            f.write(f"{datetime.now()}")
+app_dir_fastapi = ['__call__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_debug', 'add_api_route', 'add_api_websocket_route', 'add_event_handler', 'add_exception_handler', 'add_middleware', 'add_route', 'add_websocket_route', 'api_route', 'build_middleware_stack', 'debug', 'delete', 'dependency_overrides', 'description', 'docs_url', 'exception_handler', 'exception_handlers', 'extra', 'get', 'head', 'host', 'include_router', 'middleware', 'middleware_stack', 'mount', 'on_event', 'openapi', 'openapi_schema', 'openapi_tags', 'openapi_url', 'openapi_version', 'options', 'patch', 'post', 'put', 'redoc_url', 'root_path', 'root_path_in_servers', 'route', 'router', 'routes', 'servers', 'setup', 'state', 'swagger_ui_init_oauth', 'swagger_ui_oauth2_redirect_url', 'title', 'trace', 'url_path_for', 'user_middleware', 'version', 'websocket', 'websocket_route']
+app_dir_flask = ['__call__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_before_request_lock', '_blueprint_order', '_find_error_handler', '_get_exc_class_and_code', '_got_first_request', '_register_error_handler', '_static_folder', '_static_url_path', 'add_template_filter', 'add_template_global', 'add_template_test', 'add_url_rule', 'after_request', 'after_request_funcs', 'app_context', 'app_ctx_globals_class', 'auto_find_instance_path', 'before_first_request', 'before_first_request_funcs', 'before_request', 'before_request_funcs', 'blueprints', 'cli', 'config', 'config_class', 'context_processor', 'create_global_jinja_loader', 'create_jinja_environment', 'create_url_adapter', 'debug', 'default_config', 'dispatch_request', 'do_teardown_appcontext', 'do_teardown_request', 'endpoint', 'env', 'error_handler_spec', 'errorhandler', 'extensions', 'finalize_request', 'full_dispatch_request', 'get_send_file_max_age', 'got_first_request', 'handle_exception', 'handle_http_exception', 'handle_url_build_error', 'handle_user_exception', 'has_static_folder', 'import_name', 'inject_url_defaults', 'instance_path', 'iter_blueprints', 'jinja_env', 'jinja_environment', 'jinja_loader', 'jinja_options', 'json_decoder', 'json_encoder', 'log_exception', 'logger', 'make_config', 'make_default_options_response', 'make_null_session', 'make_response', 'make_shell_context', 'name', 'open_instance_resource', 'open_resource', 'open_session', 'permanent_session_lifetime', 'preprocess_request', 'preserve_context_on_exception', 'process_response', 'propagate_exceptions', 'raise_routing_exception', 'register_blueprint', 'register_error_handler', 'request_class', 'request_context', 'response_class', 'root_path', 'route', 'run', 'save_session', 'secret_key', 'select_jinja_autoescape', 'send_file_max_age_default', 'send_static_file', 'session_cookie_name', 'session_interface', 'shell_context_processor', 'shell_context_processors', 'should_ignore_error', 'static_folder', 'static_url_path', 'subdomain_matching', 'teardown_appcontext', 'teardown_appcontext_funcs', 'teardown_request', 'teardown_request_funcs', 'template_context_processors', 'template_filter', 'template_folder', 'template_global', 'template_test', 'templates_auto_reload', 'test_cli_runner', 'test_cli_runner_class', 'test_client', 'test_client_class', 'test_request_context', 'testing', 'trap_http_exception', 'try_trigger_before_first_request_functions', 'update_template_context', 'url_build_error_handlers', 'url_default_functions', 'url_defaults', 'url_map', 'url_map_class', 'url_rule_class', 'url_value_preprocessor', 'url_value_preprocessors', 'use_x_sendfile', 'view_functions', 'wsgi_app']
         
 
 class FlaskUI:
     """
-        This class opens in 3 threads the browser, the flask server, and a thread which closes the server if GUI is not opened
+        This class opens in 3 threads the browser, the flask start_server, and a thread which closes the start_server if GUI is not opened
         
         Described Parameters:
 
@@ -49,8 +25,8 @@ class FlaskUI:
         app_mode=True                     ==> by default it will start the application in chrome app mode
         browser_path="",                  ==> full path to browser.exe ("C:/browser_folder/chrome.exe")
                                               (needed if you want to start a specific browser)
-        server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
-                                              the desired server for your choosed framework (django, bottle, web2py pyramid etc)
+        start_server="flask"                    ==> the default backend framework is flask, but you can add a function which starts 
+                                              the desired start_server for your choosed framework (django, bottle, web2py pyramid etc)
         host="localhost"                  ==> specify other if needed
         port=5000                         ==> specify other if needed
         socketio                          ==> specify flask-socketio instance if you are using flask with socketio
@@ -58,59 +34,93 @@ class FlaskUI:
 
     """
 
-    def __init__(self, app=None, width=800, height=600, fullscreen=False, maximized=False, app_mode=True,  browser_path="", server="flask", host="127.0.0.1", port=5000, socketio=None, on_exit=None):
-        self.flask_app = app
+    def __init__(self, 
+        app=None, 
+        width=800, 
+        height=600, 
+        maximized=False, 
+        fullscreen=False, 
+        browser_path="", 
+        app_mode=True,  
+        start_server="flask", 
+        host="127.0.0.1", 
+        port=5000, 
+        socketio=None,
+        on_exit=None
+        ):
+        self.app = app
         self.width = str(width)
         self.height= str(height)
         self.fullscreen = fullscreen
         self.maximized = maximized
         self.app_mode = app_mode
         self.browser_path = browser_path if browser_path else self.get_default_chrome_path()  
-        self.server = server
+        self.start_server = start_server
         self.host = host
         self.port = port
         self.socketio = socketio
         self.on_exit = on_exit
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
-        self.flask_thread = Thread(target=self.run_flask) #daemon doesn't work...
-        self.browser_thread = Thread(target=self.open_browser)
-        self.close_server_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
+        self.frameworks = ["flask-socketio", "flask", "django", "fastapi"]
+
+        if sorted(dir(self.app)) == sorted(app_dir_fastapi):
+            self.start_server="fastapi"
+        if sorted(dir(self.app)) == sorted(app_dir_flask):
+            self.start_server="flask"
         
+
     def run(self):
         """
             Start the flask and gui threads instantiated in the constructor func
         """
+        with ThreadPoolExecutor() as tex:
+            tex.submit(self.run_web_start_server)
+            tex.submit(self.open_browser)
+            tex.submit(self.keep_alive_web_start_server)
 
-        self.flask_thread.start()
-        self.browser_thread.start()
-        self.close_server_thread.start()
 
-        self.browser_thread.join()
-        self.flask_thread.join()
-        self.close_server_thread.join()
-
-    def run_flask(self):
+    def run_web_start_server(self):
         """
             Run flask or other framework specified
         """
 
-        if isinstance(self.server, str):
-            if self.server.lower() == "flask":
-                if self.socketio:
-                    self.socketio.run(self.flask_app, host=self.host, port=self.port)
-                else:
-                    self.flask_app.run(host=self.host, port=self.port)
+        if isfunction(self.start_server):
+            self.start_server()
 
-            elif self.server.lower() == "django":
-                if sys.platform in ['win32', 'win64']:
-                    os.system("python manage.py runserver {}:{}".format(self.host, self.port))
-                else:
-                    os.system("python3 manage.py runserver {}:{}".format(self.host, self.port))
+        if self.start_server not in self.frameworks:
+            raise Exception(f"'start_server'({self.start_server}) not in {','.join(self.frameworks)} and also not a function which starts the webframework")
+
+        # logging.warning(f"Detected server {self.start_server}")
+
+        if self.start_server == "flask-socketio":
+            self.socketio.run(self.app, host=self.host, port=self.port)
+    
+        elif self.start_server == "flask":
+            if self.app: 
+                self.app.run(host=self.host, port=self.port)
             else:
-                raise Exception("{} must be a function which starts the webframework server!".format(self.server))
-        else:
-            self.server()
+                os.system(f"waitress-serve --host={self.host} --port={self.port} main:app")
+
+        elif self.start_server == "fastapi": 
+            if self.app:
+                import uvicorn
+                uvicorn.run(self.app, host=self.host, port=self.port, log_level="info")
+            else:
+                os.system(f"uvicorn --host {self.host} --port {self.port} main:app")
+
+        elif self.start_server == "django":
+            contents = os.listdir(os.getcwd())
+            for content in contents:
+                if os.path.isdir(content):
+                    files = os.listdir(content)
+                    if 'wsgi.py' in files:
+                        break    
+            django_project = os.path.basename(content)  
+
+            os.system(f"waitress-serve --host={self.host} --port={self.port} {django_project}.wsgi:application")
+        
+    
 
     def get_default_chrome_path(self):
         """
@@ -119,7 +129,7 @@ class FlaskUI:
         """
         if sys.platform in ['win32', 'win64']:
             return FlaskUI.find_chrome_win()
-        elif sys.platform == 'darwin':
+        elif sys.platform in ['darwin']:
             return FlaskUI.find_chrome_mac()
         elif sys.platform.startswith('linux'):
             return FlaskUI.find_chrome_linux()
@@ -176,19 +186,21 @@ class FlaskUI:
 
         # Only log some debug info if we failed completely to find chrome
         if not chrome_path:
-            log.exception(last_exception)
-            log.error("Failed to detect chrome location from registry")
+            logging.exception(last_exception)
+            logging.error("Failed to detect chrome location from registry")
         else:
-
-            log.debug(f"Chrome path detected as: {chrome_path}")
+            logging.debug(f"Chrome path detected as: {chrome_path}")
 
         return chrome_path
 
     def open_browser(self):
         """
             Open the browser selected (by default it looks for chrome)
+            # https://peter.sh/experiments/chromium-command-line-switches/
         """
 
+        temp_profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
+        
         if self.app_mode:
             launch_options = None
             if self.fullscreen:
@@ -196,57 +208,53 @@ class FlaskUI:
             elif self.maximized:
                 launch_options = ["--start-maximized"]
             else:
-                launch_options = ["--window-size={},{}".format(self.width, self.height)]
+                launch_options = [f"--window-size={self.width},{self.height}"]
 
-            options = [self.browser_path, "--new-window", '--app={}'.format(self.localhost)]
-            options.extend(launch_options)
+            options = [
+                self.browser_path, 
+                f"--user-data-dir={temp_profile_dir}",
+                "--new-window", 
+                '--no-sandbox',
+                "--no-first-run",
+                # "--window-position=0,0"
+                ] + launch_options + [f'--app={self.localhost}']
 
-            log.debug(f"Opening chrome browser with: {options}")
-            self.BROWSER_PROCESS = sps.Popen(options,
-                                             stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+
+            # logging.warning(options)
+            
+            self.BROWSER_PROCESS = sps.Popen(options, stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
+
         else:
             import webbrowser
-            log.debug(f"Opening python web browser")
             webbrowser.open_new(self.localhost)
 
-    def close_server(self):
-        """
-            If no get request comes from browser on port + 1 
-            then after 10 seconds the server will be closed 
-        """
 
-        httpd = HTTPServer(('', self.port+1), S)   
-        httpd.timeout = 10     
+    @staticmethod
+    def kill_pids_by_ports(*ports):
+        connections = psutil.net_connections()
+        for conn in connections:
+            open_port = conn.laddr[1]
+            if open_port in ports:
+                psutil.Process(conn.pid).kill()
+
+
+    def keep_alive_web_start_server(self):
+
+        while 'pid' not in dir(self.BROWSER_PROCESS):
+            time.sleep(1)
 
         while True:
-        
-            httpd.handle_request()
-
-            log.debug("Checking Gui status")
+            pid_running = psutil.pid_exists(self.BROWSER_PROCESS.pid)
+            pid_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
             
-            if os.path.isfile(keepalive_file):
-                with open(keepalive_file, "r") as f:
-                    bo = f.read().splitlines()[0]
-                diff = datetime.now() - datetime.strptime(bo, "%Y-%m-%d %H:%M:%S.%f")
+            if (
+                pid_running == False
+                or 
+                pid_memory_usage == 0
+            ): break
 
-                if diff.total_seconds() > 10:
-                    log.info("Gui was closed.")
-                    break
-
-            log.debug("Gui still open.")
+            time.sleep(5)
             
-            time.sleep(2)
-
-        if self.on_exit:
-            self.on_exit()
-
-        # Kill current python process
-        if os.path.isfile(keepalive_file):
-            # bo.txt is used to save timestamp used to check if browser is open
-            os.remove(keepalive_file)
-
-        try:
-            import psutil
-            psutil.Process(os.getpid()).kill()
-        except:
-            os.kill(os.getpid(), signal.SIGSTOP) 
+        logging.warning("closing connections...")
+        if self.on_exit: self.on_exit()
+        FlaskUI.kill_pids_by_ports(self.port)
