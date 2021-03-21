@@ -1,82 +1,18 @@
-from http.server import BaseHTTPRequestHandler, HTTPServer
-
 import psutil
-import os, time, re
+import os, time
 import sys, subprocess as sps
 import logging
-import tempfile
 from threading import Thread
 from datetime import datetime
+import asyncio
+import datetime
+import websockets
+import logging
+import json
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 
-# ports = ['1234','5678','9101']
-
-
-# popen = sps.Popen(['netstat', '-lpn'], shell=False, stdout=sps.PIPE)
-# (data, err) = popen.communicate()
-
-# pattern = "^tcp.*((?:{0})).* (?P[0-9]*)/.*$"
-# pattern = pattern.format(')|(?:'.join(ports))
-# prog = re.compile(pattern)
-# for line in data.split('\n'):
-#     match = re.match(prog, line)
-#     if match:
-#         pid = match.group('pid')
-#         sps.Popen(['kill', '-9', pid])
-
-
-# def get_pids(port):
-#     # lsof -i :5000
-#     # kill -9 PID
-
-#     command = "lsof -i :%s | awk '{print $2}'" % port
-#     pids = sps.check_output(command, shell=True).decode()
-#     if not pids: return
-
-#     pids = re.sub(' +', ' ', pids).split('\n')
-    
-#     for port in ports:
-#         pids = set(get_pids(port))
-#         command = 'kill -9 {}'.format(' '.join([str(pid) for pid in pids]))
-#         os.system(command)
-
-
-def kill_pids_by_ports(*ports):
-    connections = psutil.net_connections()
-    for conn in connections:
-        open_port = conn.laddr[1]
-        if open_port in ports:
-            psutil.Process(conn.pid).kill()
-            
-
-temp_dir = tempfile.TemporaryDirectory()
-keepalive_file = os.path.join(temp_dir.name, 'bo.txt')
-
-server_log = logging.getLogger('BaseHTTPRequestHandler')
-log = logging.getLogger('flaskwebgui')
-
-
-class S(BaseHTTPRequestHandler):
-
-    def log_message(self, format_str, *args):
-        """
-            Overrides logging in server.py so it doesn't spit out get requests to stdout.
-            This allows the caller to filter out what appears on the console.
-        """
-        server_log.debug(f"{self.address_string()} - {format_str % args}")
-
-    def _set_response(self):
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-
-    def do_GET(self):
-        self._set_response()
-        self.wfile.write("GET request for {}".format(self.path).encode('utf-8'))
-        with open(keepalive_file, "w") as f:
-            f.write(f"{datetime.now()}")
         
-
 class FlaskUI:
     """
         This class opens in 3 threads the browser, the flask server, and a thread which closes the server if GUI is not opened
@@ -114,25 +50,23 @@ class FlaskUI:
         self.socketio = socketio
         self.on_exit = on_exit
         self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
-        self.flask_thread = Thread(target=self.run_flask) #daemon doesn't work...
-        self.browser_thread = Thread(target=self.open_browser)
-        self.close_server_thread = Thread(target=self.close_server)
         self.BROWSER_PROCESS = None
         
     def run(self):
         """
             Start the flask and gui threads instantiated in the constructor func
         """
+        
 
-        self.flask_thread.start()
-        self.browser_thread.start()
-        self.close_server_thread.start()
+        with ThreadPoolExecutor() as tex:
+            tex.submit(self.run_web_server)
+            tex.submit(self.open_browser)
+            tex.submit(self.keep_alive_web_server)
+            
 
-        self.browser_thread.join()
-        self.flask_thread.join()
-        self.close_server_thread.join()
+        
 
-    def run_flask(self):
+    def run_web_server(self):
         """
             Run flask or other framework specified
         """
@@ -142,7 +76,7 @@ class FlaskUI:
                 if self.socketio:
                     self.socketio.run(self.flask_app, host=self.host, port=self.port)
                 else:
-                    self.flask_app.run(host=self.host, port=self.port)
+                    self.flask_app.run(host=self.host, port=self.port, threaded=True)
 
             elif self.server.lower() == "django":
                 if sys.platform in ['win32', 'win64']:
@@ -161,7 +95,7 @@ class FlaskUI:
         """
         if sys.platform in ['win32', 'win64']:
             return FlaskUI.find_chrome_win()
-        elif sys.platform == 'darwin':
+        elif sys.platform in ['darwin']:
             return FlaskUI.find_chrome_mac()
         elif sys.platform.startswith('linux'):
             return FlaskUI.find_chrome_linux()
@@ -218,11 +152,10 @@ class FlaskUI:
 
         # Only log some debug info if we failed completely to find chrome
         if not chrome_path:
-            log.exception(last_exception)
-            log.error("Failed to detect chrome location from registry")
+            logging.exception(last_exception)
+            logging.error("Failed to detect chrome location from registry")
         else:
-
-            log.debug(f"Chrome path detected as: {chrome_path}")
+            logging.debug(f"Chrome path detected as: {chrome_path}")
 
         return chrome_path
 
@@ -243,52 +176,71 @@ class FlaskUI:
             options = [self.browser_path, "--new-window", '--app={}'.format(self.localhost)]
             options.extend(launch_options)
 
-            log.debug(f"Opening chrome browser with: {options}")
             self.BROWSER_PROCESS = sps.Popen(options,
                                              stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
         else:
             import webbrowser
-            log.debug(f"Opening python web browser")
             webbrowser.open_new(self.localhost)
 
-    def close_server(self):
-        """
-            If no get request comes from browser on port + 1 
-            then after 10 seconds the server will be closed 
-        """
 
-        httpd = HTTPServer(('', self.port+1), S)   
-        httpd.timeout = 10     
+    @staticmethod
+    def kill_pids_by_ports(*ports):
+        connections = psutil.net_connections()
+        for conn in connections:
+            open_port = conn.laddr[1]
+            if open_port in ports:
+                psutil.Process(conn.pid).kill()
 
-        while True:
+
+
+    def keep_alive_web_server(self):
+
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         
-            httpd.handle_request()
-
-            log.debug("Checking Gui status")
+        async def keep_alive(self, websocket, path):
             
-            if os.path.isfile(keepalive_file):
-                with open(keepalive_file, "r") as f:
-                    bo = f.read().splitlines()[0]
-                diff = datetime.now() - datetime.strptime(bo, "%Y-%m-%d %H:%M:%S.%f")
+            logging.warning('waiting..')
+
+            async for msg in websocket:
+                data = json.loads(msg)
+                
+                logging.warning(data)
+
+                last_request_time = datetime.strptime(data['timestamp'], "%Y-%m-%d %H:%M:%S")
+                diff = datetime.now() - last_request_time
 
                 if diff.total_seconds() > 10:
-                    log.info("Gui was closed.")
-                    break
-
-            log.debug("Gui still open.")
-            
-            time.sleep(2)
-
-        if self.on_exit:
-            self.on_exit()
-
-        # Kill current python process
-        if os.path.isfile(keepalive_file):
-            # bo.txt is used to save timestamp used to check if browser is open
-            os.remove(keepalive_file)
-
-
-        kill_pids_by_ports(self.port, self.port+1)
-    
+                    if self.on_exit: self.on_exit()
+                    FlaskUI.kill_pids_by_ports(self.port, self.port+1)
         
 
+        server = websockets.serve(keep_alive, self.host, self.port+1)
+        loop.run_coroutine_threadsafe(server)
+        loop.run_forever()
+
+        # loop.run_until_complete(server)
+        # loop.run_forever()
+
+        # asyncio.get_event_loop().run_until_complete(server)
+        # asyncio.get_event_loop().run_forever()
+
+        return server
+
+
+    # @staticmethod
+    # def keep_alive_web_server(self):
+    #     """
+    #         If no get request comes from browser on port + 1 
+    #         then after 10 seconds the server will be closed 
+    #     """
+
+    #     logging.warning("keep_alive_web_server")
+
+    #     server = self.create_ws_server()
+        # loop = asyncio.new_event_loop()
+        # asyncio.set_event_loop(loop)
+        # loop.run_until_complete(server)
+        # loop.run_forever()
+
+        

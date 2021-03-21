@@ -16,11 +16,28 @@
 
 <a href="\home" class="button">Go home</a>
 
+<p id="ping"></p>
 
 
 <script src="../static/jquery-3.4.1.min.js"></script>
 <script src="../static/metro.min.js"></script>
-<script src="../static/scripts.js"></script>
+<!-- <script src="../static/scripts.js?10"></script> -->
+
+<script>
+
+    const port = 5001
+    const interval_request = 1 * 1000 //sec
+    const ws = new WebSocket(`ws://localhost:${port}`)
+
+    function keep_alive_server(){
+        let timestamp = parseInt(new Date().getTime() / 1000)
+        ws.send(JSON.stringify({timestamp}))
+        document.getElementById("ping").innerHTML = timestamp
+    }
+
+    setInterval(keep_alive_server, interval_request)()
+
+</script>
 
 
 </body>
