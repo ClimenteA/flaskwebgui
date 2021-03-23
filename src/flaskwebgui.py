@@ -1,3 +1,5 @@
+__version__ = "0.2.2"
+
 import psutil
 import os, time
 import sys, subprocess as sps
@@ -40,9 +42,9 @@ class FlaskUI:
         height=600, 
         maximized=False, 
         fullscreen=False, 
-        browser_path="", 
+        browser_path=None, 
         app_mode=True,  
-        start_server="flask", 
+        start_server=None, 
         host="127.0.0.1", 
         port=5000, 
         socketio=None,
@@ -65,6 +67,14 @@ class FlaskUI:
         self.frameworks = ["flask-socketio", "flask", "django", "fastapi"]
         self.tried_ports = []
 
+        if self.start_server == None:
+            self.determine_start_server()
+
+
+          
+    def determine_start_server(self):
+        
+        logging.warning("No server specified, trying to determine start_server..")
 
         if sorted(dir(self.app)) == sorted(app_dir_fastapi):
             self.start_server="fastapi"
@@ -75,8 +85,13 @@ class FlaskUI:
                 self.start_server="flask"
         if sorted(dir(self.app)) == sorted(app_dir_django):
             self.start_server="django"
-            
-        
+
+        if self.start_server == None:
+            raise Exception(f"Please fill start_server parameter with one of the following values: {', '.join(self.frameworks)}")
+
+        logging.warning(f"Detected {self.start_server}")
+  
+      
 
     def run(self):
         """
@@ -101,8 +116,6 @@ class FlaskUI:
 
         if self.start_server not in self.frameworks:
             raise Exception(f"'start_server'({self.start_server}) not in {','.join(self.frameworks)} and also not a function which starts the webframework")
-
-        logging.warning(f"Detected webframework {self.start_server}")
 
         if self.start_server == "flask-socketio":
             self.socketio.run(self.app, host=self.host, port=self.port)
@@ -273,7 +286,7 @@ class FlaskUI:
 
         while True:
             gui_running = psutil.Process(self.BROWSER_PROCESS.pid).is_running()
-            gui_memory_usage = int(psutil.Process(self.BROWSER_PROCESS.pid).memory_percent())
+            gui_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
             
             if (
                 gui_running == False
@@ -287,6 +300,8 @@ class FlaskUI:
         if isfunction(self.on_exit): 
             logging.warning(f"Executing {self.on_exit.__name__} function...")
             self.on_exit()
+        else:
+            logging.warning("No 'on_exit' function provided.")
 
         logging.warning("Closing connections...")
         FlaskUI.kill_pids_by_ports(self.port)

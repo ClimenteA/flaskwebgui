@@ -180,15 +180,15 @@ Default FlaskUI class parameters:
 
 * **height=600** ==> default height 600
 
-* **fullscreen=False** ==> start app in fullscreen
+* **fullscreen=False** ==> start app in fullscreen (equvalent to pressing `F11` on chrome)
 
 * **maximized=False** ==> start app in maximized window
 
 * **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
 
-* **browser_path=""** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
+* **browser_path=None** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
 
-* **start_server="flask"** ==> You can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc)
+* **start_server=None** ==> You can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
 
 * **port=5000** ==> specify other if needed
 
