@@ -11,7 +11,6 @@ app_dir_fastapi = ['__call__', '__class__', '__delattr__', '__dict__', '__dir__'
 app_dir_flask = ['__call__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_before_request_lock', '_blueprint_order', '_find_error_handler', '_get_exc_class_and_code', '_got_first_request', '_register_error_handler', '_static_folder', '_static_url_path', 'add_template_filter', 'add_template_global', 'add_template_test', 'add_url_rule', 'after_request', 'after_request_funcs', 'app_context', 'app_ctx_globals_class', 'auto_find_instance_path', 'before_first_request', 'before_first_request_funcs', 'before_request', 'before_request_funcs', 'blueprints', 'cli', 'config', 'config_class', 'context_processor', 'create_global_jinja_loader', 'create_jinja_environment', 'create_url_adapter', 'debug', 'default_config', 'dispatch_request', 'do_teardown_appcontext', 'do_teardown_request', 'endpoint', 'env', 'error_handler_spec', 'errorhandler', 'extensions', 'finalize_request', 'full_dispatch_request', 'get_send_file_max_age', 'got_first_request', 'handle_exception', 'handle_http_exception', 'handle_url_build_error', 'handle_user_exception', 'has_static_folder', 'import_name', 'inject_url_defaults', 'instance_path', 'iter_blueprints', 'jinja_env', 'jinja_environment', 'jinja_loader', 'jinja_options', 'json_decoder', 'json_encoder', 'log_exception', 'logger', 'make_config', 'make_default_options_response', 'make_null_session', 'make_response', 'make_shell_context', 'name', 'open_instance_resource', 'open_resource', 'open_session', 'permanent_session_lifetime', 'preprocess_request', 'preserve_context_on_exception', 'process_response', 'propagate_exceptions', 'raise_routing_exception', 'register_blueprint', 'register_error_handler', 'request_class', 'request_context', 'response_class', 'root_path', 'route', 'run', 'save_session', 'secret_key', 'select_jinja_autoescape', 'send_file_max_age_default', 'send_static_file', 'session_cookie_name', 'session_interface', 'shell_context_processor', 'shell_context_processors', 'should_ignore_error', 'static_folder', 'static_url_path', 'subdomain_matching', 'teardown_appcontext', 'teardown_appcontext_funcs', 'teardown_request', 'teardown_request_funcs', 'template_context_processors', 'template_filter', 'template_folder', 'template_global', 'template_test', 'templates_auto_reload', 'test_cli_runner', 'test_cli_runner_class', 'test_client', 'test_client_class', 'test_request_context', 'testing', 'trap_http_exception', 'try_trigger_before_first_request_functions', 'update_template_context', 'url_build_error_handlers', 'url_default_functions', 'url_defaults', 'url_map', 'url_map_class', 'url_rule_class', 'url_value_preprocessor', 'url_value_preprocessors', 'use_x_sendfile', 'view_functions', 'wsgi_app']
 app_dir_django = ['__call__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_exception_middleware', '_get_response', '_get_response_async', '_middleware_chain', '_template_response_middleware', '_view_middleware', 'adapt_method_mode', 'check_response', 'get_response', 'get_response_async', 'load_middleware', 'make_view_atomic', 'process_exception_by_middleware', 'request_class', 'resolve_request']        
 
-
 class FlaskUI:
     """
         This class opens in 3 threads the browser, the flask start_server, and a thread which closes the start_server if GUI is not opened
@@ -48,7 +47,7 @@ class FlaskUI:
         port=5000, 
         socketio=None,
         on_exit=None
-        ):
+        ):        
         self.app = app
         self.width = str(width)
         self.height= str(height)
@@ -61,9 +60,11 @@ class FlaskUI:
         self.port = port
         self.socketio = socketio
         self.on_exit = on_exit
-        self.localhost = "http://{}:{}/".format(host, port) # http://127.0.0.1:5000/
+        self.localhost = "http://{}:{}/".format(self.host, self.port) 
         self.BROWSER_PROCESS = None
         self.frameworks = ["flask-socketio", "flask", "django", "fastapi"]
+        self.tried_ports = []
+
 
         if sorted(dir(self.app)) == sorted(app_dir_fastapi):
             self.start_server="fastapi"
@@ -81,6 +82,9 @@ class FlaskUI:
         """
             Start the flask and gui threads instantiated in the constructor func
         """
+        
+        self.update_port_if_used()
+
         with ThreadPoolExecutor() as tex:
             tex.submit(self.run_web_start_server)
             tex.submit(self.open_browser)
@@ -210,6 +214,8 @@ class FlaskUI:
             # https://peter.sh/experiments/chromium-command-line-switches/
         """
 
+        logging.warning(f"Opening browser at {self.localhost}")
+
         temp_profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
         
         if self.app_mode:
@@ -249,23 +255,39 @@ class FlaskUI:
                 psutil.Process(conn.pid).kill()
 
 
+    def update_port_if_used(self):
+        connections = psutil.net_connections()
+        for conn in connections:
+            open_port = conn.laddr[1]
+            if open_port == self.port and open_port not in self.tried_ports:
+                self.port = self.port+1
+                self.localhost = "http://{}:{}/".format(self.host, self.port)
+                self.tried_ports.append(self.port)
+                self.update_port_if_used()        
+
+
     def keep_alive_web_start_server(self):
 
         while 'pid' not in dir(self.BROWSER_PROCESS):
             time.sleep(1)
 
         while True:
-            pid_running = psutil.pid_exists(self.BROWSER_PROCESS.pid)
-            pid_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
+            gui_running = psutil.Process(self.BROWSER_PROCESS.pid).is_running()
+            gui_memory_usage = int(psutil.Process(self.BROWSER_PROCESS.pid).memory_percent())
             
             if (
-                pid_running == False
+                gui_running == False
                 or 
-                pid_memory_usage == 0
+                gui_memory_usage == 0
             ): break
 
             time.sleep(5)
+         
             
-        logging.warning("closing connections...")
-        if self.on_exit: self.on_exit()
+        if isfunction(self.on_exit): 
+            logging.warning(f"Executing {self.on_exit.__name__} function...")
+            self.on_exit()
+
+        logging.warning("Closing connections...")
         FlaskUI.kill_pids_by_ports(self.port)
+        

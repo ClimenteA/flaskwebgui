@@ -18,7 +18,7 @@ with open("README.md", "r") as fh:
 
 setup (
 	name="flaskwebgui",
-	version="0.2.0",
+	version="0.2.1",
 	description="Create desktop applications with Flask/Django/FastAPI!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
