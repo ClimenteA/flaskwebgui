@@ -105,6 +105,8 @@ Application will start chrome in app mode, flask will be served by `socketio`.
 
 Pretty much the same, bellow you have the `main.py` file:
 ```py
+#main.py
+
 from fastapi import FastAPI
 from flaskwebgui import FlaskUI # import FlaskUI
 
