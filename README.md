@@ -163,9 +163,9 @@ Django will be served by `waitress`.
 
 Default FlaskUI class parameters:
 
-* **app**, ==> flask class instance
+* **app**, ==> app instance
 
-* **width=800** ==> default width 800
+* **width=800** ==> window width default 800
 
 * **height=600** ==> default height 600
 

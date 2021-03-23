@@ -13,6 +13,7 @@ django = "*"
 fastapi = "*"
 uvicorn = "*"
 flask-socketio = "*"
+eventlet = "*"
 
 [requires]
 python_version = "3.8"
