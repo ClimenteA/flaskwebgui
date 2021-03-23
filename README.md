@@ -142,6 +142,17 @@ Fastapi will be served by `uvicorn`.
 
 Next to `manage.py` file create a `gui.py` file where you need to import `application` from project's `wsgi.py` file.
 
+```bash
+├── project_name
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── gui.py # this 
+├── manage.py
+```
+
+
 ```py
 #gui.py
 
