@@ -1,4 +1,4 @@
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 import psutil
 import os, time
@@ -7,6 +7,9 @@ import logging
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from inspect import isfunction
+
+
+logging.basicConfig(level=logging.INFO, format='flaskwebgui - [%(levelname)s] - %(message)s')
 
 
 app_dir_fastapi = ['__call__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_debug', 'add_api_route', 'add_api_websocket_route', 'add_event_handler', 'add_exception_handler', 'add_middleware', 'add_route', 'add_websocket_route', 'api_route', 'build_middleware_stack', 'debug', 'delete', 'dependency_overrides', 'description', 'docs_url', 'exception_handler', 'exception_handlers', 'extra', 'get', 'head', 'host', 'include_router', 'middleware', 'middleware_stack', 'mount', 'on_event', 'openapi', 'openapi_schema', 'openapi_tags', 'openapi_url', 'openapi_version', 'options', 'patch', 'post', 'put', 'redoc_url', 'root_path', 'root_path_in_servers', 'route', 'router', 'routes', 'servers', 'setup', 'state', 'swagger_ui_init_oauth', 'swagger_ui_oauth2_redirect_url', 'title', 'trace', 'url_path_for', 'user_middleware', 'version', 'websocket', 'websocket_route']
@@ -74,7 +77,7 @@ class FlaskUI:
           
     def determine_start_server(self):
         
-        logging.warning("No server specified, trying to determine start_server..")
+        logging.info("No server specified, trying to determine start_server..")
 
         if sorted(dir(self.app)) == sorted(app_dir_fastapi):
             self.start_server="fastapi"
@@ -89,7 +92,7 @@ class FlaskUI:
         if self.start_server == None:
             raise Exception(f"Please fill start_server parameter with one of the following values: {', '.join(self.frameworks)}")
 
-        logging.warning(f"Detected {self.start_server}")
+        logging.info(f"Detected {self.start_server}")
   
       
 
@@ -217,7 +220,7 @@ class FlaskUI:
             logging.exception(last_exception)
             logging.error("Failed to detect chrome location from registry")
         else:
-            logging.debug(f"Chrome path detected as: {chrome_path}")
+            logging.info(f"Chrome path detected as: {chrome_path}")
 
         return chrome_path
 
@@ -227,7 +230,7 @@ class FlaskUI:
             # https://peter.sh/experiments/chromium-command-line-switches/
         """
 
-        logging.warning(f"Opening browser at {self.localhost}")
+        logging.info(f"Opening browser at {self.localhost}")
 
         temp_profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
         
@@ -250,7 +253,7 @@ class FlaskUI:
                 ] + launch_options + [f'--app={self.localhost}']
 
 
-            # logging.warning(options)
+            # logging.info(options)
             
             self.BROWSER_PROCESS = sps.Popen(options, stdout=sps.PIPE, stderr=sps.PIPE, stdin=sps.PIPE)
 
@@ -261,28 +264,48 @@ class FlaskUI:
 
     @staticmethod
     def kill_pids_by_ports(*ports):
-        connections = psutil.net_connections()
-        for conn in connections:
-            open_port = conn.laddr[1]
-            if open_port in ports:
-                psutil.Process(conn.pid).kill()
+        try:
+            connections = psutil.net_connections()
+            for conn in connections:
+                open_port = conn.laddr[1]
+                if open_port in ports:
+                    psutil.Process(conn.pid).kill()
+        except (PermissionError, psutil.AccessDenied):            
+            os.kill(os.getpid(), 9)
+
 
 
     def update_port_if_used(self):
-        connections = psutil.net_connections()
-        for conn in connections:
-            open_port = conn.laddr[1]
-            if open_port == self.port and open_port not in self.tried_ports:
-                self.port = self.port+1
-                self.localhost = "http://{}:{}/".format(self.host, self.port)
-                self.tried_ports.append(self.port)
-                self.update_port_if_used()        
+        try:
+            connections = psutil.net_connections()
+            for conn in connections:
+                open_port = conn.laddr[1]
+                if open_port == self.port and open_port not in self.tried_ports:
+                    self.port = self.port+1
+                    self.localhost = "http://{}:{}/".format(self.host, self.port)
+                    self.tried_ports.append(self.port)
+                    self.update_port_if_used()       
+        except (PermissionError, psutil.AccessDenied):  
+            import socketserver
+            with socketserver.TCPServer(("localhost", 0), None) as s:
+                free_port = s.server_address[1]
+            self.port = free_port
+            self.localhost = "http://{}:{}/".format(self.host, self.port)
+                     
+
 
 
     def keep_alive_web_start_server(self):
 
         while 'pid' not in dir(self.BROWSER_PROCESS):
             time.sleep(1)
+
+        try:
+            gui_running = psutil.Process(self.BROWSER_PROCESS.pid).is_running()
+            gui_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
+        except:
+            logging.error("Could not use psutil to check if gui is opened!")
+            return
 
         while True:
             gui_running = psutil.Process(self.BROWSER_PROCESS.pid).is_running()
@@ -298,11 +321,11 @@ class FlaskUI:
          
             
         if isfunction(self.on_exit): 
-            logging.warning(f"Executing {self.on_exit.__name__} function...")
+            logging.info(f"Executing {self.on_exit.__name__} function...")
             self.on_exit()
         else:
-            logging.warning("No 'on_exit' function provided.")
+            logging.info("No 'on_exit' function provided.")
 
-        logging.warning("Closing connections...")
+        logging.info("Closing connections...")
         FlaskUI.kill_pids_by_ports(self.port)
         
