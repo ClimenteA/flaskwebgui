@@ -308,8 +308,11 @@ class FlaskUI:
             return
 
         while True:
-            gui_running = psutil.Process(self.BROWSER_PROCESS.pid).is_running()
-            gui_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
+            try:
+                gui_running = psutil.Process(self.BROWSER_PROCESS.pid).is_running()
+                gui_memory_usage = psutil.Process(self.BROWSER_PROCESS.pid).memory_percent()
+            except psutil.NoSuchProcess:
+                gui_running = False
             
             if (
                 gui_running == False
