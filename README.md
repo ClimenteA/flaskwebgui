@@ -9,6 +9,35 @@
 pip install flaskwebgui
 ```
 
+For any framework selected add bellow js code to your app.
+Code bellow makes some pooling to the `/keep-server-alive` endpoint and informs flaskwebgui to keep server running while gui is running. Without code bellow server will close after a few seconds.
+```js
+
+async function getRequest(url='') {
+    const response = await fetch(url, {
+      method: 'GET', 
+      cache: 'no-cache'
+    })
+    return response.json()
+}
+  
+document.addEventListener('DOMContentLoaded', function() {
+
+let url = document.location
+let route = "/keep-server-alive"
+let interval_request = 3 * 1000 //sec
+
+function keep_alive_server(){
+    getRequest(url + route)
+    .then(data => console.log(data))
+}
+
+setInterval(keep_alive_server, interval_request)()
+
+})
+
+```
+
 
 ## Usage with Flask
 
@@ -31,6 +60,12 @@ def hello():
 @app.route("/home", methods=['GET'])
 def home(): 
     return render_template('some_page.html')
+
+
+@app.route("/keep-server-alive", methods=['GET'])
+def keep_alive():
+    """ This keeps server runnig """
+    return FlaskUI.keep_server_running()
 
 
 if __name__ == "__main__":
@@ -77,6 +112,12 @@ def index():
     return {"message": "flask_socketio"}
 
 
+@app.route("/keep-server-alive", methods=['GET'])
+def keep_alive():
+    """ This keeps server runnig """
+    return FlaskUI.keep_server_running()
+
+
 if __name__ == '__main__':
     # socketio.run(app) for development
     FlaskUI(app, socketio=socketio).run()   
@@ -117,6 +158,13 @@ ui = FlaskUI(app) # feed app and parameters
 def read_root():
     return {"message": "Works with FastAPI also!"}
 
+
+@app.route("/keep-server-alive", methods=['GET'])
+def keep_alive():
+    """ This keeps server runnig """
+    return FlaskUI.keep_server_running()
+
+
 if __name__ == "__main__":
     ui.run()
 
@@ -154,6 +202,8 @@ Next to `manage.py` file create a `gui.py` file where you need to import `applic
 ├── manage.py
 ```
 
+In a app created add `/keep-server-alive` GET endpoint which calls `FlaskUI.keep_server_running()`.
+
 
 ```py
 #gui.py
@@ -186,13 +236,9 @@ Default FlaskUI class parameters:
 
 * **maximized=False** ==> start app in maximized window
 
-* **app_mode=True** ==> by default it will start chrome in app(desktop) mode without address bar
-
 * **browser_path=None** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
 
 * **start_server=None** ==> You can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
-
-* **port=5000** ==> specify other if needed
 
 * **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
 

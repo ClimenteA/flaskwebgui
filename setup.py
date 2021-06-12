@@ -18,14 +18,14 @@ with open("README.md", "r") as fh:
 
 setup (
 	name="flaskwebgui",
-	version="0.2.3",
+	version="0.3.0",
 	description="Create desktop applications with Flask/Django/FastAPI!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
 	author_email="climente.alin@gmail.com",
 	license='MIT',
 	py_modules=["flaskwebgui"],
-	install_requires=['psutil','whichcraft', 'waitress'],
+	install_requires=['whichcraft', 'waitress'],
 	packages=find_packages(),
 	long_description=long_description,
     long_description_content_type="text/markdown",

@@ -1,4 +1,4 @@
-__version__ = "0.2.3"
+__version__ = "0.3.0"
 
 import os
 import sys
@@ -143,9 +143,6 @@ class FlaskUI:
         }
 
         self.supported_frameworks = list(self.framework_dispacher.keys())
-
-        if os.path.exists(keep_gui_alive):
-            os.remove(keep_gui_alive)
 
 
     def run(self):
