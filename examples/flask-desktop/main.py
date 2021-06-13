@@ -15,10 +15,15 @@ def home():
     return render_template('some_page.html')
 
 
-@app.route("/keep-server-alive", methods=['GET'])
-def keep_alive():
-    FlaskUI.keep_server_running()
-    return ""
+
+# @app.route("/keep-server-alive", methods=['GET'])
+# def keep_alive():
+#     return ui.keep_server_running()
+
+# @app.after_request
+# def keep_alive_after_request(response):
+#     ui.keep_server_running()
+#     return response
 
 
 
