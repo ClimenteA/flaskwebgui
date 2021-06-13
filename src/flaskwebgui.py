@@ -2,7 +2,9 @@ __version__ = "0.3.0"
 
 import os
 import sys
+import threading
 import time
+import uuid
 from datetime import datetime
 import logging
 import tempfile
@@ -10,6 +12,7 @@ import socketserver
 import subprocess as sps
 from inspect import isfunction
 from concurrent.futures import ThreadPoolExecutor
+from threading import Lock, Thread
 
 
 
@@ -99,16 +102,12 @@ def get_default_chrome_path():
 
 
 
-temp_profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
-keep_gui_alive   = os.path.join(temp_profile_dir, "keep_gui_alive.txt")
 
-def write_timestamp():
-    with open(keep_gui_alive, "w") as f:
-        f.write(f"{datetime.now()}")
 
+current_timestamp = None
 
 class FlaskUI:
-
+    
     def __init__(self, 
         app, 
         start_server='flask',
@@ -135,27 +134,47 @@ class FlaskUI:
      
         self.set_url()
      
-        self.framework_dispacher = {
+        self.webserver_dispacher = {
             "flask": self.start_flask,
             "flask-socketio": self.start_flask_socketio,
             "django": self.start_django,
             "fastapi": self.start_fastapi
         }
 
-        self.supported_frameworks = list(self.framework_dispacher.keys())
+        self.supported_frameworks = list(self.webserver_dispacher.keys())
+        self.lock = Lock()
+
+
+    def update_timestamp(self):
+        self.lock.acquire()
+        global current_timestamp
+        current_timestamp = datetime.now()
+        self.lock.release()
+        
+        logging.info("updated timestamp")
+        logging.info(current_timestamp)
 
 
     def run(self):
         """ 
-        Starts 2 threads one for webframework server and one for browser gui 
+        Starts 3 threads one for webframework server and one for browser gui 
         """
-        
-        write_timestamp()
 
-        with ThreadPoolExecutor() as tex:
-            tex.submit(self.start_webserver)
-            tex.submit(self.open_chromium)
-            tex.submit(self.stop_webserver)
+        self.update_timestamp()
+
+        t_start_webserver = Thread(target=self.start_webserver)
+        t_open_chromium   = Thread(target=self.open_chromium)
+        t_stop_webserver  = Thread(target=self.stop_webserver)
+
+        threads = [t_start_webserver, t_open_chromium, t_stop_webserver]
+
+        for t in threads: t.start()
+        for t in threads: t.join()
+
+        # with ThreadPoolExecutor(max_workers=3) as tex:
+        #     tex.submit(self.start_webserver)
+        #     tex.submit(self.open_chromium)
+        #     tex.submit(self.stop_webserver)
 
 
     def set_url(self):
@@ -174,12 +193,26 @@ class FlaskUI:
         if self.start_server not in self.supported_frameworks:
             raise Exception(f"'start_server'({self.start_server}) not in {','.join(self.supported_frameworks)} and also not a function which starts the webframework")
 
-        self.framework_dispacher[self.start_server]()
+        self.webserver_dispacher[self.start_server]()
 
 
     def start_flask(self):
-        import waitress
-        waitress.serve(self.app, host=self.host, port=self.port)
+
+        @self.app.route("/flaskwebgui-keep-server-alive", methods=['GET'])
+        def keep_alive():
+            return self.keep_server_running()
+
+        @self.app.after_request
+        def keep_alive_after_request(response):
+            self.keep_server_running()
+            return response
+
+        try:
+            import waitress
+            waitress.serve(self.app, host=self.host, port=self.port)
+        except:
+            self.app.run(host=self.host, port=self.port)
+
 
     def start_flask_socketio(self):
         self.socketio.run(self.app, host=self.host, port=self.port)
@@ -189,8 +222,16 @@ class FlaskUI:
         waitress.serve(self.app, host=self.host, port=self.port)
 
     def start_fastapi(self):
+
+        @self.app.middleware("http")
+        async def keep_alive_after_request(request, call_next):
+            response = await call_next(request)
+            self.keep_server_running()
+            return response
+
         import uvicorn
         uvicorn.run(self.app, host=self.host, port=self.port, log_level="info")
+
 
 
     def open_chromium(self):
@@ -200,6 +241,8 @@ class FlaskUI:
         """
 
         logging.info(f"Opening browser at {self.localhost}")
+
+        temp_profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
 
         if self.browser_path:
             launch_options = None
@@ -230,14 +273,16 @@ class FlaskUI:
 
     def stop_webserver(self):
 
+        logging.info("stop_webserver tread")
+     
         while True:
 
-            with open(keep_gui_alive, "r") as f:
-                data = f.read().splitlines()[0]
-            
-            diff = datetime.now() - datetime.strptime(data, "%Y-%m-%d %H:%M:%S.%f")
+            self.lock.acquire()
+            global current_timestamp
+            delta_seconds = (datetime.now() - current_timestamp).total_seconds()
+            self.lock.release()
 
-            if diff.total_seconds() > self.idle_interval:
+            if delta_seconds > self.idle_interval:
                 logging.info("App closed")
                 break
          
@@ -252,9 +297,8 @@ class FlaskUI:
         os.kill(os.getpid(), 9)
 
 
-    @staticmethod
-    def keep_server_running():
-        write_timestamp()
+    def keep_server_running(self):
+        self.update_timestamp()
         return "Ok"
 
         
