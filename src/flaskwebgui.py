@@ -2,16 +2,13 @@ __version__ = "0.3.0"
 
 import os
 import sys
-import threading
 import time
-import uuid
 from datetime import datetime
 import logging
 import tempfile
 import socketserver
 import subprocess as sps
 from inspect import isfunction
-from concurrent.futures import ThreadPoolExecutor
 from threading import Lock, Thread
 
 
@@ -103,6 +100,15 @@ def get_default_chrome_path():
 
 
 
+# class FlaskwebguiDjangoMiddleware:
+    
+#     def __init__(self, get_response=None):
+#         self.get_response = get_response
+
+#     def __call__(self, request):
+#         response = self.get_response(request)
+#         return response
+
 
 current_timestamp = None
 
@@ -151,8 +157,6 @@ class FlaskUI:
         current_timestamp = datetime.now()
         self.lock.release()
         
-        logging.info("updated timestamp")
-        logging.info(current_timestamp)
 
 
     def run(self):
@@ -167,14 +171,9 @@ class FlaskUI:
         t_stop_webserver  = Thread(target=self.stop_webserver)
 
         threads = [t_start_webserver, t_open_chromium, t_stop_webserver]
-
         for t in threads: t.start()
         for t in threads: t.join()
 
-        # with ThreadPoolExecutor(max_workers=3) as tex:
-        #     tex.submit(self.start_webserver)
-        #     tex.submit(self.open_chromium)
-        #     tex.submit(self.stop_webserver)
 
 
     def set_url(self):
@@ -196,7 +195,7 @@ class FlaskUI:
         self.webserver_dispacher[self.start_server]()
 
 
-    def start_flask(self):
+    def add_flask_middleware(self):
 
         @self.app.route("/flaskwebgui-keep-server-alive", methods=['GET'])
         def keep_alive():
@@ -207,6 +206,11 @@ class FlaskUI:
             self.keep_server_running()
             return response
 
+
+    def start_flask(self):
+        
+        self.add_flask_middleware()
+        
         try:
             import waitress
             waitress.serve(self.app, host=self.host, port=self.port)
@@ -215,21 +219,32 @@ class FlaskUI:
 
 
     def start_flask_socketio(self):
+        self.add_flask_middleware()
         self.socketio.run(self.app, host=self.host, port=self.port)
 
+
     def start_django(self):
-        import waitress
-        waitress.serve(self.app, host=self.host, port=self.port)
+        try:
+            import waitress
+            waitress.serve(self.app, host=self.host, port=self.port)
+        except:
+            try:#linux and mac
+                os.system(f"python3 manage.py runserver {self.port}")
+            except:#windows
+                os.system(f"python manage.py runserver {self.port}")
+        
 
-    def start_fastapi(self):
-
+    def add_fastapi_middleware(self):
         @self.app.middleware("http")
         async def keep_alive_after_request(request, call_next):
             response = await call_next(request)
             self.keep_server_running()
             return response
 
+
+    def start_fastapi(self):
         import uvicorn
+        self.add_fastapi_middleware()
         uvicorn.run(self.app, host=self.host, port=self.port, log_level="info")
 
 
@@ -272,8 +287,11 @@ class FlaskUI:
 
 
     def stop_webserver(self):
-
-        logging.info("stop_webserver tread")
+        
+        #TODO add middleware for Django
+        if self.start_server == 'django':
+            logging.info("Middleware not implemented (yet) for Django.")
+            return
      
         while True:
 

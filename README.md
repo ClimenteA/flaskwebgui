@@ -62,12 +62,6 @@ def home():
     return render_template('some_page.html')
 
 
-@app.route("/keep-server-alive", methods=['GET'])
-def keep_alive():
-    """ This keeps server runnig """
-    return FlaskUI.keep_server_running()
-
-
 if __name__ == "__main__":
     # app.run() for debug
     ui.run()
@@ -89,7 +83,7 @@ python main.py
 #or
 python gui.py #in case you created gui.py 
 ```
-Application will start chrome in app mode, flask will be served by `waitress`.  
+Application will start chrome in app mode, flask will be served by `waitress` if you have it installed. (if you have it installed).  
 
 
 ## Usage with Flask-SocketIO
@@ -97,30 +91,27 @@ Application will start chrome in app mode, flask will be served by `waitress`.
 Let's say we have the following SocketIO application:
 ```py
 #main.py
-
-from flask import Flask
+from flask import Flask, render_template
 from flask_socketio import SocketIO
 from flaskwebgui import FlaskUI
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
-
 @app.route("/")
-def index():  
-    return {"message": "flask_socketio"}
+def hello():  
+    return render_template('index.html')
 
-
-@app.route("/keep-server-alive", methods=['GET'])
-def keep_alive():
-    """ This keeps server runnig """
-    return FlaskUI.keep_server_running()
+@app.route("/home", methods=['GET'])
+def home(): 
+    return render_template('some_page.html')
 
 
 if __name__ == '__main__':
     # socketio.run(app) for development
-    FlaskUI(app, socketio=socketio).run()   
+    FlaskUI(app, socketio=socketio, start_server="flask-socketio").run()
 
 ```
 Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
@@ -131,7 +122,7 @@ Alternatively, next to `main.py` create a file called `gui.py` and add the follo
 from flaskwebgui import FlaskUI
 from main import app, socketio
 
-FlaskUI(app, socketio=socketio).run()
+FlaskUI(app, socketio=socketio, start_server="flask-socketio").run()
 ```
 Next start the application with:
 ```py
@@ -147,37 +138,49 @@ Application will start chrome in app mode, flask will be served by `socketio`.
 Pretty much the same, bellow you have the `main.py` file:
 ```py
 #main.py
-
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI
-from flaskwebgui import FlaskUI # import FlaskUI
+from flaskwebgui import FlaskUI
 
 app = FastAPI()
-ui = FlaskUI(app) # feed app and parameters
 
-@app.get("/")
-def read_root():
-    return {"message": "Works with FastAPI also!"}
+# Mounting default static files
+app.mount("/dist", StaticFiles(directory="dist/"), name="dist")
+app.mount("/css", StaticFiles(directory="dist/css"), name="css")
+app.mount("/img", StaticFiles(directory="dist/img"), name="img")
+app.mount("/js", StaticFiles(directory="dist/js"), name="js")
+templates = Jinja2Templates(directory="dist")
 
 
-@app.route("/keep-server-alive", methods=['GET'])
-def keep_alive():
-    """ This keeps server runnig """
-    return FlaskUI.keep_server_running()
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/home", response_class=HTMLResponse)
+async def home(request: Request): 
+    return templates.TemplateResponse("some_page.html", {"request": request})
 
 
 if __name__ == "__main__":
-    ui.run()
+    
+    def saybye(): print("on_exit bye")
+
+    FlaskUI(app, start_server='fastapi', on_exit=saybye).run()
+
 
 ```
 Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
 
 ```py
 #gui.py
-
 from flaskwebgui import FlaskUI
 from main import app
 
-FlaskUI(app, width=600, height=500).run()
+FlaskUI(app, start_server='fastapi').run()
 ```
 Next start the application with:
 ```py
@@ -202,8 +205,7 @@ Next to `manage.py` file create a `gui.py` file where you need to import `applic
 ├── manage.py
 ```
 
-In a app created add `/keep-server-alive` GET endpoint which calls `FlaskUI.keep_server_running()`.
-
+In `gui.py` file add bellow code.
 
 ```py
 #gui.py
@@ -211,15 +213,17 @@ In a app created add `/keep-server-alive` GET endpoint which calls `FlaskUI.keep
 from flaskwebgui import FlaskUI
 from project_name.wsgi import application
 
-FlaskUI(application).run()
+ui = FlaskUI(application, start_server='django')
+ui.run()
 
 ```
 Next start the application with:
 ```py
 python gui.py  
 ```
-Django will be served by `waitress`.  
+Django will be served by `waitress` if you have it installed.  
 
+#### TODO: For Django, flaskwebgui doesn't have middleware and keep-alive endpoint implemented. Console will not close after ui window is closed.    
 
 
 ### Configurations
