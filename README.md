@@ -8,6 +8,7 @@
 ``` py
 pip install flaskwebgui
 ```
+If you are using `conda` checkout [this link](https://github.com/conda-forge/flaskwebgui-feedstock).
 
 For any framework selected add bellow js code to your app.
 Code bellow makes some pooling to the `/keep-server-alive` endpoint and informs flaskwebgui to keep server running while gui is running. Without code bellow server will close after a few seconds.
