@@ -15,7 +15,7 @@ let interval_request = 3 * 1000 //sec
 
 function keep_alive_server(){
     getRequest(url + route)
-    .then(data => console.log(data))
+    // .then(data => console.log(data))
 }
 
 setInterval(keep_alive_server, interval_request)()

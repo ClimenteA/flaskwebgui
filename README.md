@@ -84,7 +84,7 @@ python main.py
 #or
 python gui.py #in case you created gui.py 
 ```
-Application will start chrome in app mode, flask will be served by `waitress` if you have it installed. (if you have it installed).  
+Application will start chrome in app mode, flask will be served by `waitress` if you have it installed. 
 
 
 ## Usage with Flask-SocketIO
@@ -254,7 +254,7 @@ Develop your app as you would normally do, add flaskwebgui at the end or for tes
 
 ### Distribution
 
-You can distribute it as a standalone desktop app with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
+You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan).
 
 ### Credits
 It's a combination of https://github.com/Widdershin/flask-desktop and https://github.com/ChrisKnott/Eel

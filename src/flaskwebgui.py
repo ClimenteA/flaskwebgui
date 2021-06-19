@@ -197,10 +197,6 @@ class FlaskUI:
 
     def add_flask_middleware(self):
 
-        @self.app.route("/flaskwebgui-keep-server-alive", methods=['GET'])
-        def keep_alive():
-            return self.keep_server_running()
-
         @self.app.after_request
         def keep_alive_after_request(response):
             self.keep_server_running()
@@ -235,6 +231,7 @@ class FlaskUI:
         
 
     def add_fastapi_middleware(self):
+        
         @self.app.middleware("http")
         async def keep_alive_after_request(request, call_next):
             response = await call_next(request)
@@ -245,7 +242,7 @@ class FlaskUI:
     def start_fastapi(self):
         import uvicorn
         self.add_fastapi_middleware()
-        uvicorn.run(self.app, host=self.host, port=self.port, log_level="info")
+        uvicorn.run(self.app, host=self.host, port=self.port, log_level="warning")
 
 
 
