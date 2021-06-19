@@ -171,8 +171,8 @@ class FlaskUI:
         t_stop_webserver  = Thread(target=self.stop_webserver)
 
         threads = [t_start_webserver, t_open_chromium, t_stop_webserver]
-        for t in threads: t.start()
-        for t in threads: t.join()
+        [ t.start() for t in threads ]
+        [ t.join() for t in threads ]
 
 
 
