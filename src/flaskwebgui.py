@@ -1,4 +1,4 @@
-__version__ = "0.3.0"
+__version__ = "0.3.2"
 
 import os
 import sys
@@ -201,6 +201,13 @@ class FlaskUI:
         def keep_alive_after_request(response):
             self.keep_server_running()
             return response
+        
+        @self.app.route("/flaskwebgui-keep-server-alive")
+        def keep_alive_pooling():
+            self.keep_server_running()
+            return "ok"
+        
+        
 
 
     def start_flask(self):
@@ -237,7 +244,12 @@ class FlaskUI:
             response = await call_next(request)
             self.keep_server_running()
             return response
-
+        
+        @self.app.route("/flaskwebgui-keep-server-alive")
+        async def keep_alive_pooling():
+            self.keep_server_running()
+            return "ok"
+        
 
     def start_fastapi(self):
         import uvicorn
