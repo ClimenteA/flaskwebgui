@@ -249,6 +249,10 @@ Default FlaskUI class parameters:
 
 Should work on windows/linux/mac with no isssues.
 
+**Setting width, height, fullscreen, maximized may not work in some cases.** 
+Flags provided on opening chrome are ignored for some reason. 
+I couldn't reproduce the issue in order to fix it, feel free to make a pull request for this.
+
 Develop your app as you would normally do, add flaskwebgui at the end or for tests.
 **flaskwebgui doesn't interfere with your way of doing a flask application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
 
