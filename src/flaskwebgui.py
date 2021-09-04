@@ -1,4 +1,4 @@
-__version__ = "0.3.2"
+__version__ = "0.3.3"
 
 import os
 import sys
@@ -105,7 +105,7 @@ def get_default_chrome_path():
 
 
 # class FlaskwebguiDjangoMiddleware:
-    
+      #TODO help needed here
 #     def __init__(self, get_response=None):
 #         self.get_response = get_response
 
