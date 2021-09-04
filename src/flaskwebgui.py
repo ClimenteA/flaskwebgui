@@ -19,15 +19,19 @@ logging.basicConfig(level=logging.INFO, format='flaskwebgui - [%(levelname)s] - 
 
 def find_chrome_mac():
 
-    default_dir = r'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-    if os.path.exists(default_dir):
-        return default_dir
+    chrome_names = ['Google Chrome', 'Chromium']
 
-    # use mdfind ci to locate Chrome in alternate locations and return the first one
-    name = 'Google Chrome.app'
-    alternate_dirs = [x for x in sps.check_output(["mdfind", name]).decode().split('\n') if x.endswith(name)] 
-    if len(alternate_dirs):
-        return alternate_dirs[0] + '/Contents/MacOS/Google Chrome'
+    for chrome_name in chrome_names:
+        default_dir = r'/Applications/{}.app/Contents/MacOS/{}'.format(chrome_name, chrome_name)
+        if os.path.exists(default_dir):
+            return default_dir
+
+        # use mdfind ci to locate Chrome in alternate locations and return the first one
+        name = '{}.app'.format(chrome_name)
+        alternate_dirs = [x for x in sps.check_output(["mdfind", name]).decode().split('\n') if x.endswith(name)] 
+        if len(alternate_dirs):
+            return alternate_dirs[0] + '/Contents/MacOS/{}'.format(chrome_name)
+
     return None
 
 
