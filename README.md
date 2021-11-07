@@ -10,8 +10,8 @@ pip install flaskwebgui
 ```
 If you are using `conda` checkout [this link](https://github.com/conda-forge/flaskwebgui-feedstock).
 
-For any framework selected add bellow js code to your app.
-Code bellow makes some pooling to the `/flaskwebgui-keep-server-alive` endpoint and informs flaskwebgui to keep server running while gui is running. Without code bellow server will close after a few seconds.
+For any framework selected add below js code to your app.
+Code below makes some pooling to the `/flaskwebgui-keep-server-alive` endpoint and informs flaskwebgui to keep server running while gui is running. Without code below server will close after a few seconds.
 ```js
 
 async function getRequest(url='') {
@@ -136,7 +136,7 @@ Application will start chrome in app mode, flask will be served by `socketio`.
 
 ## Usage with FastAPI
 
-Pretty much the same, bellow you have the `main.py` file:
+Pretty much the same, below you have the `main.py` file:
 ```py
 #main.py
 from fastapi import FastAPI, Request
@@ -206,7 +206,7 @@ Next to `manage.py` file create a `gui.py` file where you need to import `applic
 ├── manage.py
 ```
 
-In `gui.py` file add bellow code.
+In `gui.py` file add below code.
 
 ```py
 #gui.py
