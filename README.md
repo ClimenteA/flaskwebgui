@@ -1,9 +1,9 @@
 # Flaskwebgui
-
-Create desktop applications with Flask/FastAPI/Django!
   
 [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 [![PyPI](https://img.shields.io/pypi/v/flaskwebgui?color=blue)](https://pypi.org/project/flaskwebgui/)
+
+Create desktop applications with Flask/FastAPI/Django!
 
 ## Install
 
