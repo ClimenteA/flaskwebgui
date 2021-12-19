@@ -41,6 +41,8 @@ setInterval(keep_alive_server, interval_request)()
 
 ```
 
+If you've set `close_server_on_exit` parameter to `False` you don't need add the javascript script.
+
 
 ## Usage with Flask
 
@@ -248,8 +250,8 @@ Default FlaskUI class parameters:
 * **start_server=None** ==> You can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
 
 * **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
+* **close_server_on_exit** ==> default is `True` which means when the chrome window is closed the server will close also.
 
-Should work on windows/linux/mac with no isssues.
 
 **Setting width, height, fullscreen, maximized may not work in some cases.** 
 Flags provided on opening chrome are ignored for some reason. 

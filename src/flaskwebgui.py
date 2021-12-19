@@ -1,4 +1,4 @@
-__version__ = "0.3.3"
+__version__ = "0.3.4"
 
 import os
 import sys
@@ -128,7 +128,8 @@ class FlaskUI:
         browser_path=None, 
         socketio=None,
         on_exit=None,
-        idle_interval=5
+        idle_interval=5,
+        close_server_on_exit=True
         ) -> None:
 
         self.app = app
@@ -141,6 +142,7 @@ class FlaskUI:
         self.socketio = socketio
         self.on_exit = on_exit
         self.idle_interval = idle_interval
+        self.close_server_on_exit = close_server_on_exit
      
         self.set_url()
      
@@ -152,7 +154,9 @@ class FlaskUI:
         }
 
         self.supported_frameworks = list(self.webserver_dispacher.keys())
-        self.lock = Lock()
+    
+        if self.close_server_on_exit: 
+            self.lock = Lock()
 
 
     def update_timestamp(self):
@@ -167,8 +171,9 @@ class FlaskUI:
         """ 
         Starts 3 threads one for webframework server and one for browser gui 
         """
-
-        self.update_timestamp()
+        
+        if self.close_server_on_exit:
+            self.update_timestamp()
 
         t_start_webserver = Thread(target=self.start_webserver)
         t_open_chromium   = Thread(target=self.open_chromium)
@@ -216,7 +221,8 @@ class FlaskUI:
 
     def start_flask(self):
         
-        self.add_flask_middleware()
+        if self.close_server_on_exit:
+            self.add_flask_middleware()
         
         try:
             import waitress
@@ -226,8 +232,11 @@ class FlaskUI:
 
 
     def start_flask_socketio(self):
-        self.add_flask_middleware()
-        self.socketio.run(self.app, host=self.host, port=self.port)
+        
+        if self.close_server_on_exit:
+            self.add_flask_middleware()
+            
+        self.socketio.run(self.app, host=self.host, port=self.port, debug=False)
 
 
     def start_django(self):
@@ -256,8 +265,12 @@ class FlaskUI:
         
 
     def start_fastapi(self):
+        
         import uvicorn
-        self.add_fastapi_middleware()
+    
+        if self.close_server_on_exit:
+            self.add_fastapi_middleware()
+        
         uvicorn.run(self.app, host=self.host, port=self.port, log_level="warning")
 
 
@@ -300,6 +313,8 @@ class FlaskUI:
 
 
     def stop_webserver(self):
+        
+        if self.close_server_on_exit is False: return
         
         #TODO add middleware for Django
         if self.start_server == 'django':
