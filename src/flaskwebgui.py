@@ -121,6 +121,8 @@ class FlaskUI:
     def __init__(self, 
         app, 
         start_server='flask',
+        host='127.0.0.1',
+        port=None,
         width=800, 
         height=600, 
         maximized=False, 
@@ -134,6 +136,8 @@ class FlaskUI:
 
         self.app = app
         self.start_server = str(start_server).lower()
+        self.host = host
+        self.port = port
         self.width = str(width)
         self.height= str(height)
         self.fullscreen = fullscreen
@@ -186,10 +190,11 @@ class FlaskUI:
 
 
     def set_url(self):
-        with socketserver.TCPServer(("localhost", 0), None) as s:
-            free_port = s.server_address[1]
-        self.host = '127.0.0.1'
-        self.port = free_port
+        if port is None:
+            with socketserver.TCPServer(("localhost", 0), None) as s:
+                free_port = s.server_address[1]
+            self.port = free_port
+
         self.localhost = f"http://{self.host}:{self.port}" 
        
 
