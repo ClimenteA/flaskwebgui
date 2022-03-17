@@ -298,7 +298,6 @@ class FlaskUI:
                 self.browser_path, 
                 f"--user-data-dir={temp_profile_dir}",
                 "--new-window", 
-                "--no-sandbox",
                 "--no-first-run",
                 # "--window-position=0,0"
                 ] + launch_options + [f'--app={self.localhost}']
