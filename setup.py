@@ -25,7 +25,7 @@ if sys.platform.startswith('linux'):
 
 setup(
 	name="flaskwebgui",
-	version="0.3.4",
+	version="0.3.5",
 	description="Create desktop applications with Flask/Django/FastAPI!",
 	url="https://github.com/ClimenteA/flaskwebgui",
 	author="Climente Alin",
