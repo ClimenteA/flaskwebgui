@@ -1,4 +1,4 @@
-__version__ = "0.3.5"
+__version__ = "0.3.6"
 
 import os
 import sys
@@ -220,7 +220,7 @@ class FlaskUI:
         @self.app.route("/flaskwebgui-keep-server-alive")
         def keep_alive_pooling():
             self.keep_server_running()
-            return "ok"
+            return {"status": "alive"}
         
         
 
@@ -267,7 +267,7 @@ class FlaskUI:
         @self.app.route("/flaskwebgui-keep-server-alive")
         async def keep_alive_pooling():
             self.keep_server_running()
-            return "ok"
+            return {"status": "alive"}
         
 
     def start_fastapi(self):
@@ -350,6 +350,6 @@ class FlaskUI:
 
     def keep_server_running(self):
         self.update_timestamp()
-        return "Ok"
+        return {"status": "alive"}
 
         

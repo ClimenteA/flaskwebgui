@@ -42,6 +42,7 @@ setInterval(keep_alive_server, interval_request)()
 ```
 
 If you've set `close_server_on_exit` parameter to `False` you don't need add the javascript script.
+**If you have any issues with the app closing prematurly set `close_server_on_exit` parameter to `False`.**
 
 
 ## Usage with Flask
