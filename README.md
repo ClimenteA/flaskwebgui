@@ -15,31 +15,28 @@ If you are using `conda` checkout [this link](https://github.com/conda-forge/fla
 For any framework selected add below js code to your app.
 Code below makes some pooling to the `/flaskwebgui-keep-server-alive` endpoint and informs flaskwebgui to keep server running while gui is running. Without code below server will close after a few seconds.
 ```js
+document.addEventListener('DOMContentLoaded', function () {
 
-async function getRequest(url='') {
-    const response = await fetch(url, {
-      method: 'GET', 
+  function keep_alive_server() {
+    fetch(document.location + "flaskwebgui-dumb-request-for-middleware-keeping-the-server-online", {
+      method: 'GET',
       cache: 'no-cache'
     })
-    return response.json()
-}
-  
-document.addEventListener('DOMContentLoaded', function() {
+      .then(res => { })
+      .catch(err => { })
+  }
 
-let url = document.location
-let route = "/flaskwebgui-keep-server-alive"
-let interval_request = 3 * 1000 //sec
-
-function keep_alive_server(){
-    getRequest(url + route)
-    .then(data => console.log(data))
-}
-
-setInterval(keep_alive_server, interval_request)()
+  try {
+    setInterval(keep_alive_server, 3 * 1000)()
+  } catch (error) {
+    // doesn't matter handled by middleware
+  }
 
 })
 
 ```
+
+You will a 404 error in the browser console - don't worry about it this js script just informs each 3 seconds that the gui is still open. If it's to annoying - you can create a GET endpoint for keep alive and update the keep alive js script to point to that endpoint.    
 
 If you've set `close_server_on_exit` parameter to `False` you don't need add the javascript script.
 **If you have any issues with the app closing prematurly set `close_server_on_exit` parameter to `False`.**

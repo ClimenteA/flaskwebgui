@@ -26,7 +26,22 @@ async def home(request: Request):
 
 
 if __name__ == "__main__":
-    
-    def saybye(): print("on_exit bye")
 
-    FlaskUI(app, start_server='fastapi', on_exit=saybye).run()
+    debug = False
+
+    if debug:
+        import uvicorn
+        uvicorn.run(
+            "main:app",
+            host="0.0.0.0",
+            port=3000,
+            reload=True,
+        )
+    else:  
+          
+        def saybye(): 
+            print("on_exit bye")
+        
+        FlaskUI(app, start_server='fastapi', on_exit=saybye).run()
+
+

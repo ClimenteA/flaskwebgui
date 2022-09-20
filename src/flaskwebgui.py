@@ -1,4 +1,4 @@
-__version__ = "0.3.6"
+__version__ = "0.3.7"
 
 import os
 import sys
@@ -217,13 +217,6 @@ class FlaskUI:
             self.keep_server_running()
             return response
         
-        @self.app.route("/flaskwebgui-keep-server-alive")
-        def keep_alive_pooling():
-            self.keep_server_running()
-            return {"status": "alive"}
-        
-        
-
 
     def start_flask(self):
         
@@ -232,7 +225,7 @@ class FlaskUI:
         
         try:
             import waitress
-            waitress.serve(self.app, host=self.host, port=self.port)
+            waitress.serve(self.app, host=self.host, port=self.port, threads=6)
         except:
             self.app.run(host=self.host, port=self.port)
 
@@ -248,7 +241,7 @@ class FlaskUI:
     def start_django(self):
         try:
             import waitress
-            waitress.serve(self.app, host=self.host, port=self.port)
+            waitress.serve(self.app, host=self.host, port=self.port, threads=6)
         except:
             try:#linux and mac
                 os.system(f"python3 manage.py runserver {self.port}")
@@ -264,12 +257,6 @@ class FlaskUI:
             self.keep_server_running()
             return response
         
-        @self.app.route("/flaskwebgui-keep-server-alive")
-        async def keep_alive_pooling():
-            self.keep_server_running()
-            return {"status": "alive"}
-        
-
     def start_fastapi(self):
         
         import uvicorn
