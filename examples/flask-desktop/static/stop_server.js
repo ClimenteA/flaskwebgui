@@ -1,24 +1,19 @@
+document.addEventListener('DOMContentLoaded', function () {
 
-async function getRequest(url='') {
-    const response = await fetch(url, {
-      method: 'GET', 
+  function keep_alive_server() {
+    fetch(document.location + "flaskwebgui-dumb-request-for-middleware-keeping-the-server-online", {
+      method: 'GET',
       cache: 'no-cache'
     })
-    return response.json()
-}
-  
-document.addEventListener('DOMContentLoaded', function() {
+      .then(res => { })
+      .catch(err => { })
+  }
 
-let url = document.location
-let route = "/flaskwebgui-keep-server-alive"
-let interval_request = 3 * 1000 //sec
-
-function keep_alive_server(){
-    getRequest(url + route)
-    // .then(data => console.log(data))
-}
-
-setInterval(keep_alive_server, interval_request)()
+  try {
+    setInterval(keep_alive_server, 3 * 1000)()
+  } catch (error) {
+    // doesn't matter handled by middleware
+  }
 
 })
 

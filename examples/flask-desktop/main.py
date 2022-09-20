@@ -1,9 +1,10 @@
+from distutils.log import debug
 from flask import Flask  
 from flask import render_template
 from flaskwebgui import FlaskUI
 
 app = Flask(__name__)
-ui = FlaskUI(app, width=500, height=500) 
+
 
 
 @app.route("/")
@@ -16,5 +17,12 @@ def home():
 
 
 if __name__ == "__main__":
-    ui.run()
+
+    debug = False
+
+    if debug:
+        app.run(debug=True)
+    else:
+        FlaskUI(app, width=500, height=500, start_server="flask").run() 
+    
    
