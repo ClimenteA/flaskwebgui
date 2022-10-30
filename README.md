@@ -245,7 +245,7 @@ Default FlaskUI class parameters:
 
 * **browser_path=None** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
 
-* **start_server=None** ==> You can add a function which starts the desired server for your chosen framework (bottle, web2py pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
+* **start_server=None** ==> You can add a function which starts the desired server for your chosen framework (bottle, web2py, pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
 
 * **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
 * **close_server_on_exit** ==> default is `True` which means when the chrome window is closed the server will also close.
