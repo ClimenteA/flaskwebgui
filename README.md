@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 ```
 
-You will a 404 error in the browser console - don't worry about it this js script just informs each 3 seconds that the gui is still open. If it's to annoying - you can create a GET endpoint for keep alive and update the keep alive js script to point to that endpoint.    
+You will a 404 error in the browser console - don't worry about it. This js script just informs every 3 seconds that the gui is still open. If it's too annoying - you can create a GET endpoint for keep alive and update the keep alive js script to point to that endpoint.    
 
 If you've set `close_server_on_exit` parameter to `False` you don't need add the javascript script.
 **If you have any issues with the app closing prematurly set `close_server_on_exit` parameter to `False`.**
@@ -233,7 +233,7 @@ Django will be served by `waitress` if you have it installed.
 
 Default FlaskUI class parameters:
 
-* **app**, ==> app instance
+* **app** ==> app instance
 
 * **width=800** ==> window width default 800
 
@@ -245,10 +245,10 @@ Default FlaskUI class parameters:
 
 * **browser_path=None** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
 
-* **start_server=None** ==> You can add a function which starts the desired server for your choosed framework (bottle, web2py pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
+* **start_server=None** ==> You can add a function which starts the desired server for your chosen framework (bottle, web2py pyramid etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
 
 * **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
-* **close_server_on_exit** ==> default is `True` which means when the chrome window is closed the server will close also.
+* **close_server_on_exit** ==> default is `True` which means when the chrome window is closed the server will also close.
 
 
 **Setting width, height, fullscreen, maximized may not work in some cases.** 
