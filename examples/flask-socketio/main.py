@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
-from flaskwebgui import FlaskUI
+from _flaskwebgui import FlaskUI
 
 
 app = Flask(__name__)

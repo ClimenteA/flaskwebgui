@@ -4,6 +4,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI
 from flaskwebgui import FlaskUI
+from threading import Thread
+from multiprocessing import Process
+import time
+
 
 app = FastAPI()
 
@@ -21,8 +25,19 @@ async def root(request: Request):
 
 
 @app.get("/home", response_class=HTMLResponse)
-async def home(request: Request): 
+async def home(request: Request):
     return templates.TemplateResponse("some_page.html", {"request": request})
+
+
+def start_uvicorn(port: int, debug: bool = False):
+    import uvicorn
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port,
+        reload=debug,
+    )
 
 
 if __name__ == "__main__":
@@ -30,18 +45,10 @@ if __name__ == "__main__":
     debug = False
 
     if debug:
-        import uvicorn
-        uvicorn.run(
-            "main:app",
-            host="0.0.0.0",
-            port=3000,
-            reload=True,
-        )
-    else:  
-          
-        def saybye(): 
+        start_uvicorn()
+    else:
+
+        def saybye():
             print("on_exit bye")
-        
-        FlaskUI(app, start_server='fastapi', on_exit=saybye).run()
 
-
+        FlaskUI(start_server=start_uvicorn, port=3000, on_shutdown=saybye).run()
