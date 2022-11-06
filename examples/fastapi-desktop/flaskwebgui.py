@@ -10,6 +10,7 @@ from typing import Callable, Any, List, Union, Dict
 
 
 OPERATING_SYSTEM = platform.system().lower()
+PY = "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python"
 
 
 def get_free_port():
@@ -62,68 +63,48 @@ class BaseDefaultServer:
 
 class DefaultServerFastApi:
     @staticmethod
-    def get_server_kwargs(port: int, debug: bool):
-        return {"app": "main:app", "workers": 2, "port": port, "reload": debug}
+    def get_server_kwargs(app, port: int):
+        server_kwargs = {"app": app, "port": port}
+        if isinstance(app, str):
+            server_kwargs.update({"workers": 2})
+        return server_kwargs
 
     @staticmethod
     def server(**server_kwargs):
 
         import uvicorn
 
-        if server_kwargs:
-            uvicorn.run(**server_kwargs)
-        else:
-            default_kwargs = {
-                "app": "main:app",
-                "port": server_kwargs.get("port"),
-                "workers": 2,
-                "reload": server_kwargs.get("reload"),
-            }
-            uvicorn.run(**default_kwargs)
+        uvicorn.run(**server_kwargs)
 
 
 class DefaultServerFlask:
     @staticmethod
-    def get_server_kwargs(port: int, debug: bool):
-        return {"app": "main:app", "workers": 2, "port": port, "reload": debug}
+    def get_server_kwargs(app, port: int):
+        return {"app": app, "port": port, "threaded": True}
 
     @staticmethod
     def server(**server_kwargs):
+        app = server_kwargs.pop("app", None)
+        server_kwargs.pop("debug", None)
 
-        import uvicorn
+        try:
+            import waitress
 
-        if server_kwargs:
-            uvicorn.run(**server_kwargs)
-        else:
-            default_kwargs = {
-                "app": "main:app",
-                "port": server_kwargs.get("port"),
-                "workers": 2,
-                "reload": server_kwargs.get("reload"),
-            }
-            uvicorn.run(**default_kwargs)
+            waitress.serve(app, **server_kwargs)
+        except:
+            app.run(**server_kwargs)
 
 
 class DefaultServerDjango:
     @staticmethod
-    def get_server_kwargs(port: int, debug: bool):
-        return {"app": "main:app", "workers": 2, "port": port, "reload": debug}
+    def get_server_kwargs(app, port: int):
+        return {"app": app, "workers": 2, "port": port}
 
     @staticmethod
     def server(**server_kwargs):
-
         import uvicorn
 
-        if server_kwargs:
-            uvicorn.run(**server_kwargs)
-        else:
-            default_kwargs = {
-                "app": "main:app",
-                "port": server_kwargs.get("port"),
-                "workers": 2,
-                "reload": server_kwargs.get("reload"),
-            }
-            uvicorn.run(**default_kwargs)
+        uvicorn.run(**server_kwargs)
 
 
 webserver_dispacher: Dict[str, BaseDefaultServer] = {
@@ -137,6 +118,7 @@ webserver_dispacher: Dict[str, BaseDefaultServer] = {
 class FlaskUI:
     server: Union[str, Callable[[Any], None]]
     server_kwargs: dict = None
+    app: Any = None
     width: int = None
     height: int = None
     fullscreen: bool = True
@@ -144,7 +126,6 @@ class FlaskUI:
     on_shutdown: Callable = None
     browser_path: str = None
     browser_command: List[str] = None
-    debug: bool = False
 
     def __post_init__(self):
 
@@ -156,7 +137,7 @@ class FlaskUI:
             default_server = webserver_dispacher[self.server]
             self.server = default_server.server
             self.server_kwargs = self.server_kwargs or default_server.get_server_kwargs(
-                self.port, self.debug
+                self.app, self.port
             )
 
         self.profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
@@ -166,13 +147,7 @@ class FlaskUI:
 
         if not self.browser_path:
             print("path to chrome not found")
-            self.browser_command = [
-                "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python",
-                "-m",
-                "webbrowser",
-                "-n",
-                self.url,
-            ]
+            self.browser_command = [PY, "-m", "webbrowser", "-n", self.url]
 
     def get_browser_command(self):
 

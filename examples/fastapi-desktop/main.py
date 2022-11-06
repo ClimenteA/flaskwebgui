@@ -26,7 +26,7 @@ async def home(request: Request):
     return templates.TemplateResponse("some_page.html", {"request": request})
 
 
-def start_uvicorn(**kwargs):
+def start_fastapi(**kwargs):
     import uvicorn
 
     uvicorn.run(**kwargs)
@@ -37,10 +37,20 @@ if __name__ == "__main__":
     # Default start fastapi
 
     FlaskUI(
+        app=app,
         server="fastapi",
         width=800,
         height=600,
     ).run()
+
+    # Default start fastapi 2 workers
+
+    # FlaskUI(
+    #     app="main:app",
+    #     server="fastapi",
+    #     width=800,
+    #     height=600,
+    # ).run()
 
     # Default start fastapi with custom kwargs
 
@@ -61,7 +71,7 @@ if __name__ == "__main__":
     #     print("on_exit bye")
 
     # FlaskUI(
-    #     server=start_uvicorn,
+    #     server=start_fastapi,
     #     server_kwargs={
     #         "app": "main:app",
     #         "port": 3000,
