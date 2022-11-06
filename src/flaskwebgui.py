@@ -187,15 +187,14 @@ class FlaskUI:
         return flags
 
     def start_browser(self, server_process: Process):
-
-        if self.on_startup is not None:
-            self.on_startup()
-
         print("Command:", " ".join(self.browser_command))
         subprocess.run(self.browser_command)
         server_process.kill()
 
     def run(self):
+
+        if self.on_startup is not None:
+            self.on_startup()
 
         server_process = Process(target=self.server, kwargs=self.server_kwargs or {})
         browser_thread = Thread(target=self.start_browser, args=(server_process,))

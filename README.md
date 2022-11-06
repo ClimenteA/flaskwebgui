@@ -12,35 +12,6 @@ pip install flaskwebgui
 ```
 If you are using `conda` checkout [this link](https://github.com/conda-forge/flaskwebgui-feedstock).
 
-For any framework selected add below js code to your app.
-Code below makes some pooling to the `/flaskwebgui-keep-server-alive` endpoint and informs flaskwebgui to keep server running while gui is running. Without code below server will close after a few seconds.
-```js
-document.addEventListener('DOMContentLoaded', function () {
-
-  function keep_alive_server() {
-    fetch(document.location + "flaskwebgui-dumb-request-for-middleware-keeping-the-server-online", {
-      method: 'GET',
-      cache: 'no-cache'
-    })
-      .then(res => { })
-      .catch(err => { })
-  }
-
-  try {
-    setInterval(keep_alive_server, 3 * 1000)()
-  } catch (error) {
-    // doesn't matter handled by middleware
-  }
-
-})
-
-```
-
-You will a 404 error in the browser console - don't worry about it. This js script just informs every 3 seconds that the gui is still open. If it's too annoying - you can create a GET endpoint for keep alive and update the keep alive js script to point to that endpoint.    
-
-If you've set `close_server_on_exit` parameter to `False` you don't need add the javascript script.
-**If you have any issues with the app closing prematurly set `close_server_on_exit` parameter to `False`.**
-
 
 ## Usage with Flask
 
@@ -53,7 +24,6 @@ from flask import render_template
 from flaskwebgui import FlaskUI # import FlaskUI
 
 app = Flask(__name__)
-ui = FlaskUI(app, width=500, height=500) # add app and parameters
 
 
 @app.route("/")
@@ -66,27 +36,14 @@ def home():
 
 
 if __name__ == "__main__":
-    # app.run() for debug
-    ui.run()
+  # If you are debugging you can do that in the browser:
+  # app.run()
+  # If you want to view the flaskwebgui window:
+  FlaskUI(app=app, server="flask").run()
    
 ```
-Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
 
-```py
-#gui.py
-
-from flaskwebgui import FlaskUI
-from main import app
-
-FlaskUI(app, width=600, height=500).run()
-```
-Next start the application with:
-```py
-python main.py 
-#or
-python gui.py #in case you created gui.py 
-```
-Application will start chrome in app mode, flask will be served by `waitress` if you have it installed. 
+Install [`waitress`](https://pypi.org/project/waitress/) for more performance.
 
 
 ## Usage with Flask-SocketIO
@@ -114,26 +71,17 @@ def home():
 
 if __name__ == '__main__':
     # socketio.run(app) for development
-    FlaskUI(app, socketio=socketio, start_server="flask-socketio").run()
+    FlaskUI(
+        app=app,
+        socketio=socketio,
+        server="flask_socketio",
+        width=800,
+        height=600,
+    ).run()
 
 ```
-Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
 
-```py
-#gui.py
-
-from flaskwebgui import FlaskUI
-from main import app, socketio
-
-FlaskUI(app, socketio=socketio, start_server="flask-socketio").run()
-```
-Next start the application with:
-```py
-python main.py 
-#or
-python gui.py #in case you created gui.py 
-```
-Application will start chrome in app mode, flask will be served by `socketio`.  
+App will be served by `flask_socketio`.
 
 
 ## Usage with FastAPI
@@ -170,28 +118,11 @@ async def home(request: Request):
 
 if __name__ == "__main__":
     
-    def saybye(): print("on_exit bye")
-
-    FlaskUI(app, start_server='fastapi', on_exit=saybye).run()
-
+    FlaskUI(app=app, server="fastapi").run()
 
 ```
-Alternatively, next to `main.py` create a file called `gui.py` and add the following contents:
 
-```py
-#gui.py
-from flaskwebgui import FlaskUI
-from main import app
-
-FlaskUI(app, start_server='fastapi').run()
-```
-Next start the application with:
-```py
-python main.py 
-#or
-python gui.py #in case you created gui.py 
-```
-Fastapi will be served by `uvicorn`.  
+FastApi will be served by `uvicorn`.  
 
 
 ## Usage with Django
@@ -212,61 +143,105 @@ In `gui.py` file add below code.
 
 ```py
 #gui.py
-
 from flaskwebgui import FlaskUI
-from project_name.wsgi import application
+from djangodesktop.wsgi import application as app
 
-ui = FlaskUI(application, start_server='django')
-ui.run()
+if __name__ == "__main__":
+    FlaskUI(app=app, server="django").run()
 
 ```
 Next start the application with:
 ```py
 python gui.py  
 ```
-Django will be served by `waitress` if you have it installed.  
 
-#### TODO: For Django, flaskwebgui doesn't have middleware and keep-alive endpoint implemented. Console will not close after ui window is closed.    
+Install `waitress` for more performance.
 
 
-### Configurations
+## Configurations
 
 Default FlaskUI class parameters:
 
-* **app** ==> app instance
-
-* **width=800** ==> window width default 800
-
-* **height=600** ==> default height 600
-
-* **fullscreen=False** ==> start app in fullscreen (equvalent to pressing `F11` on chrome)
-
-* **maximized=False** ==> start app in maximized window
-
-* **browser_path=None** ==> path to `browser.exe` (absolute path to chrome `C:/browser_folder/chrome.exe`)
-
-* **start_server=None** ==> You can add a function which starts the desired server for your chosen framework (bottle, web2py, pyramid, etc) or specify one of the supported frameworks: `flask-socketio`, `flask`, `django`, `fastapi`
-
-* **socketio=SocketIO Instance** ==> Flask SocketIO instance (if specified, uses `socketio.run()` instead of `app.run()` for Flask application)
-* **close_server_on_exit** ==> default is `True` which means when the chrome window is closed the server will also close.
-
-
-**Setting width, height, fullscreen, maximized may not work in some cases.** 
-Flags provided on opening chrome are ignored for some reason. 
-I couldn't reproduce the issue in order to fix it, feel free to make a pull request for this.
+- `server: Union[str, Callable[[Any], None]]`: function which receives `server_kwargs` to start server (see examples folder);
+- `server_kwargs: dict = None`: kwargs which will be passed down to `server` function;
+- `app: Any = None`: `wsgi` or `asgi` app;
+- `width: int = None`: width of the window;
+- `height: int = None`: height of the window;
+- `fullscreen: bool = True`: start app in fullscreen (maximized);
+- `on_startup: Callable = None`: function to before starting the browser and webserver;
+- `on_shutdown: Callable = None`: function to after the browser and webserver shutdown;
+- `browser_path: str = None`: set path to chrome executable or let the defaults do that;
+- `browser_command: List[str] = None`: command line with starts chrome in `app` mode;
+- `socketio: Any = None`: socketio instance in case of flask_socketio;
 
 Develop your app as you would normally do, add flaskwebgui at the end or for tests.
-**flaskwebgui doesn't interfere with your way of doing a flask application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
+**flaskwebgui doesn't interfere with your way of doing an application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
 
-### Distribution
+
+## Advanced Usage
+
+You can plug in any python webframework you want just by providing a function to start the server in `server` FlaskUI parameter which will be feed `server_kwargs`.
+
+Example:
+
+```python
+
+# until here is the flask example from above
+
+def start_flask(**server_kwargs):
+
+    app = server_kwargs.pop("app", None)
+    server_kwargs.pop("debug", None)
+
+    try:
+        import waitress
+
+        waitress.serve(app, **server_kwargs)
+    except:
+        app.run(**server_kwargs)
+
+
+if __name__ == "__main__":
+
+    # Custom start flask
+
+    def saybye():
+        print("on_exit bye")
+
+    FlaskUI(
+        server=start_flask,
+        server_kwargs={
+            "app": app,
+            "port": 3000,
+            "threaded": True,
+        },
+        width=800,
+        height=600,
+        on_shutdown=saybye,
+    ).run()
+
+```
+In this way any webframework can be plugged in and the webframework can be started in a more customized manner.
+
+Checkout `examples` for more information.
+
+
+## Distribution
 
 You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan).
 
-### Credits
+
+## Limitations
+
+- Parameters `width`, `height` and maybe `fullscreen` don't work on Mac;
+- Window control is limited to width, height, fullscreen;
+- Remember it's still a browser but without the address bar so what a browser does the window from flaskwebgui will do that too (you can hack it with js though);
+
+
+## Credits
 It's a combination of https://github.com/Widdershin/flask-desktop and https://github.com/ChrisKnott/Eel
 
-flaskwebgui just uses threading to start a flask server and the browser in app mode (for chrome).
-It has some advantages over flask-desktop because it doesn't use PyQt5, so you won't have any issues regarding licensing and over Eel because you don't need to learn any logic other than Flask/Django.
+It has some advantages over flask-desktop because it doesn't use PyQt5, so you won't have any issues regarding licensing and over Eel because you don't need to learn any logic other than Flask/Django/FastAPI/etc.
 
 **Submit any questions/issues you have! Fell free to fork it and improve it!**
 
