@@ -63,9 +63,9 @@ class BaseDefaultServer:
 
 class DefaultServerFastApi:
     @staticmethod
-    def get_server_kwargs(app, port: int):
-        server_kwargs = {"app": app, "port": port}
-        if isinstance(app, str):
+    def get_server_kwargs(**kwargs):
+        server_kwargs = {"app": kwargs.get("app"), "port": kwargs.get("port")}
+        if isinstance(server_kwargs["app"], str):
             server_kwargs.update({"workers": 2})
         return server_kwargs
 
@@ -79,8 +79,8 @@ class DefaultServerFastApi:
 
 class DefaultServerFlask:
     @staticmethod
-    def get_server_kwargs(app, port: int):
-        return {"app": app, "port": port, "threaded": True}
+    def get_server_kwargs(**kwargs):
+        return {"app": kwargs.get("app"), "port": kwargs.get("port"), "threaded": True}
 
     @staticmethod
     def server(**server_kwargs):
@@ -97,19 +97,35 @@ class DefaultServerFlask:
 
 class DefaultServerDjango:
     @staticmethod
-    def get_server_kwargs(app, port: int):
-        return {"app": app, "workers": 2, "port": port}
+    def get_server_kwargs(**kwargs):
+        return "TODO"
 
     @staticmethod
     def server(**server_kwargs):
-        import uvicorn
+        "TODO"
+        return
 
-        uvicorn.run(**server_kwargs)
+
+class DefaultServerFlaskSocketIO:
+    @staticmethod
+    def get_server_kwargs(**kwargs):
+        return {
+            "app": kwargs.get("app"),
+            "flask_socketio": kwargs.get("flask_socketio"),
+            "port": kwargs.get("port"),
+        }
+
+    @staticmethod
+    def server(**server_kwargs):
+        server_kwargs["flask_socketio"].run(
+            server_kwargs["app"], port=server_kwargs["port"]
+        )
 
 
 webserver_dispacher: Dict[str, BaseDefaultServer] = {
     "fastapi": DefaultServerFastApi,
     "flask": DefaultServerFlask,
+    "flask_socketio": DefaultServerFlaskSocketIO,
     "django": DefaultServerDjango,
 }
 
@@ -126,6 +142,7 @@ class FlaskUI:
     on_shutdown: Callable = None
     browser_path: str = None
     browser_command: List[str] = None
+    socketio: Any = None
 
     def __post_init__(self):
 
@@ -137,7 +154,7 @@ class FlaskUI:
             default_server = webserver_dispacher[self.server]
             self.server = default_server.server
             self.server_kwargs = self.server_kwargs or default_server.get_server_kwargs(
-                self.app, self.port
+                app=self.app, port=self.port, flask_socketio=self.socketio
             )
 
         self.profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
