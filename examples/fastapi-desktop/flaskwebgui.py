@@ -1,13 +1,15 @@
 import os
 import tempfile
 import platform
-import webbrowser
 import subprocess
 import socketserver
 from dataclasses import dataclass
 from threading import Thread
 from multiprocessing import Process
-from typing import Callable
+from typing import Callable, Any, List, Union, Dict
+
+
+OPERATING_SYSTEM = platform.system().lower()
 
 
 def get_free_port():
@@ -34,6 +36,9 @@ def find_browser_on_windows():
     edge_path = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
     if os.path.exists(edge_path):
         return edge_path
+    edge_path = "C:\Program Files\Microsoft\Edge\Application\msedge.exe"
+    if os.path.exists(edge_path):
+        return edge_path
     chrome_path = "C:\Program Files\Google\Chrome\Application\chrome.exe"
     if os.path.exists(chrome_path):
         return chrome_path
@@ -41,35 +46,135 @@ def find_browser_on_windows():
 
 
 def find_browser():
-    system = platform.system().lower()
-    if system == "windows":
+    if OPERATING_SYSTEM == "windows":
         return find_browser_on_windows()
-    if system == "linux":
+    if OPERATING_SYSTEM == "linux":
         return find_browser_on_linux()
-    if system == "darwin":
+    if OPERATING_SYSTEM == "darwin":
         return find_browser_on_mac()
     return None
 
 
+class BaseDefaultServer:
+    server: Callable
+    get_server_kwargs: Callable
+
+
+class DefaultServerFastApi:
+    @staticmethod
+    def get_server_kwargs(port: int, debug: bool):
+        return {"app": "main:app", "workers": 2, "port": port, "reload": debug}
+
+    @staticmethod
+    def server(**server_kwargs):
+
+        import uvicorn
+
+        if server_kwargs:
+            uvicorn.run(**server_kwargs)
+        else:
+            default_kwargs = {
+                "app": "main:app",
+                "port": server_kwargs.get("port"),
+                "workers": 2,
+                "reload": server_kwargs.get("reload"),
+            }
+            uvicorn.run(**default_kwargs)
+
+
+class DefaultServerFlask:
+    @staticmethod
+    def get_server_kwargs(port: int, debug: bool):
+        return {"app": "main:app", "workers": 2, "port": port, "reload": debug}
+
+    @staticmethod
+    def server(**server_kwargs):
+
+        import uvicorn
+
+        if server_kwargs:
+            uvicorn.run(**server_kwargs)
+        else:
+            default_kwargs = {
+                "app": "main:app",
+                "port": server_kwargs.get("port"),
+                "workers": 2,
+                "reload": server_kwargs.get("reload"),
+            }
+            uvicorn.run(**default_kwargs)
+
+
+class DefaultServerDjango:
+    @staticmethod
+    def get_server_kwargs(port: int, debug: bool):
+        return {"app": "main:app", "workers": 2, "port": port, "reload": debug}
+
+    @staticmethod
+    def server(**server_kwargs):
+
+        import uvicorn
+
+        if server_kwargs:
+            uvicorn.run(**server_kwargs)
+        else:
+            default_kwargs = {
+                "app": "main:app",
+                "port": server_kwargs.get("port"),
+                "workers": 2,
+                "reload": server_kwargs.get("reload"),
+            }
+            uvicorn.run(**default_kwargs)
+
+
+webserver_dispacher: Dict[str, BaseDefaultServer] = {
+    "fastapi": DefaultServerFastApi,
+    "flask": DefaultServerFlask,
+    "django": DefaultServerDjango,
+}
+
+
 @dataclass
 class FlaskUI:
-    start_server: Callable[[int], None]
-    port: int = None
-    fullscreen: bool = True
+    server: Union[str, Callable[[Any], None]]
+    server_kwargs: dict = None
     width: int = None
     height: int = None
+    fullscreen: bool = True
     on_startup: Callable = None
     on_shutdown: Callable = None
-    debug: bool = False
     browser_path: str = None
+    browser_command: List[str] = None
+    debug: bool = False
 
     def __post_init__(self):
-        self.browser_path = self.browser_path or find_browser()
-        self.profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
-        self.port = self.port or get_free_port()
-        self.url = f"http://127.0.0.1:{self.port}"
 
-    def get_browser_startup_flags(self):
+        self.port = (
+            self.server_kwargs.get("port") if self.server_kwargs else get_free_port()
+        )
+
+        if isinstance(self.server, str):
+            default_server = webserver_dispacher[self.server]
+            self.server = default_server.server
+            self.server_kwargs = self.server_kwargs or default_server.get_server_kwargs(
+                self.port, self.debug
+            )
+
+        self.profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
+        self.url = f"http://127.0.0.1:{self.port}"
+        self.browser_path = self.browser_path or find_browser()
+        self.browser_command = self.browser_command or self.get_browser_command()
+
+        if not self.browser_path:
+            print("path to chrome not found")
+            self.browser_command = [
+                "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python",
+                "-m",
+                "webbrowser",
+                "-n",
+                self.url,
+            ]
+
+    def get_browser_command(self):
 
         flags = [
             self.browser_path,
@@ -78,14 +183,12 @@ class FlaskUI:
             "--no-first-run",
         ]
 
-        if self.fullscreen:
-            flags.extend(["--start-maximized"])
         if self.width and self.height:
             flags.extend([f"--window-size={self.width},{self.height}"])
+        elif self.fullscreen:
+            flags.extend(["--start-maximized"])
 
         flags.extend([f"--app={self.url}"])
-
-        print("Command:", " ".join(flags))
 
         return flags
 
@@ -94,17 +197,13 @@ class FlaskUI:
         if self.on_startup is not None:
             self.on_startup()
 
-        if not self.browser_path:
-            print("path to chrome not found")
-            webbrowser.open_new(self.url)
-            return
-
-        subprocess.run(self.get_browser_startup_flags())
+        print("Command:", " ".join(self.browser_command))
+        subprocess.run(self.browser_command)
         server_process.kill()
 
     def run(self):
 
-        server_process = Process(target=self.start_server, args=(self.port,))
+        server_process = Process(target=self.server, kwargs=self.server_kwargs)
         browser_thread = Thread(target=self.start_browser, args=(server_process,))
 
         try:

@@ -4,9 +4,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI
 from flaskwebgui import FlaskUI
-from threading import Thread
-from multiprocessing import Process
-import time
 
 
 app = FastAPI()
@@ -29,26 +26,48 @@ async def home(request: Request):
     return templates.TemplateResponse("some_page.html", {"request": request})
 
 
-def start_uvicorn(port: int, debug: bool = False):
+def start_uvicorn(**kwargs):
     import uvicorn
 
-    uvicorn.run(
-        "main:app",
-        host="0.0.0.0",
-        port=port,
-        reload=debug,
-    )
+    uvicorn.run(**kwargs)
 
 
 if __name__ == "__main__":
 
-    debug = False
+    # Default start fastapi
 
-    if debug:
-        start_uvicorn()
-    else:
+    FlaskUI(
+        server="fastapi",
+        width=800,
+        height=600,
+    ).run()
 
-        def saybye():
-            print("on_exit bye")
+    # Default start fastapi with custom kwargs
 
-        FlaskUI(start_server=start_uvicorn, port=3000, on_shutdown=saybye).run()
+    # FlaskUI(
+    #     server="fastapi",
+    #     server_kwargs={
+    #         "app": app,
+    #         "port": 3000,
+    #         "reload": False,
+    #     },
+    #     width=800,
+    #     height=600,
+    # ).run()
+
+    # Custom start fastapi
+
+    # def saybye():
+    #     print("on_exit bye")
+
+    # FlaskUI(
+    #     server=start_uvicorn,
+    #     server_kwargs={
+    #         "app": "main:app",
+    #         "port": 3000,
+    #         "reload": True,
+    #     },
+    #     width=800,
+    #     height=600,
+    #     on_shutdown=saybye,
+    # ).run()
