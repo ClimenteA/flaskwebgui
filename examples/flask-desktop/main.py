@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask import render_template
 from flaskwebgui import FlaskUI
 
@@ -15,6 +15,15 @@ def home():
     return render_template("some_page.html")
 
 
+@app.route("/upload", methods=["POST"])
+def upload():
+
+    f = request.files["file"]
+    f.save(f.filename)
+
+    return render_template("index.html")
+
+
 def start_flask(**server_kwargs):
 
     app = server_kwargs.pop("app", None)
@@ -29,6 +38,8 @@ def start_flask(**server_kwargs):
 
 
 if __name__ == "__main__":
+
+    # app.run(debug=True)
 
     # Default start flask
     FlaskUI(
