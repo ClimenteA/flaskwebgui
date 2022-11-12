@@ -165,6 +165,7 @@ Default FlaskUI class parameters:
 - `server: Union[str, Callable[[Any], None]]`: function which receives `server_kwargs` to start server (see examples folder);
 - `server_kwargs: dict = None`: kwargs which will be passed down to `server` function;
 - `app: Any = None`: `wsgi` or `asgi` app;
+- `port: int = None`: specify port if not a free port will set;
 - `width: int = None`: width of the window;
 - `height: int = None`: height of the window;
 - `fullscreen: bool = True`: start app in fullscreen (maximized);
@@ -231,11 +232,14 @@ Checkout `examples` for more information.
 You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan).
 
 
-## Limitations
+## Observations
 
-- Parameters `width`, `height` and maybe `fullscreen` don't work on Mac;
+- Parameters `width`, `height` and maybe `fullscreen` may not work on Mac;
 - Window control is limited to width, height, fullscreen;
-- Remember it's still a browser but without the address bar so what a browser does the window from flaskwebgui will do that too (you can hack it with js though);
+- Remember the gui is still a browser - pressing F5 will refresh the page + other browser specific things (you can hack it with js though);
+- You don't need production level setup with gunicorn etc - you just have one user to serve;
+- If you want to debug it just run it as you would normally do with `app.run(**etc)`, `uvicorn.run(**etc)`, `python manage.py runserver` etc. flaskwebgui does not provide auto-reload you already have it in the webframework you are using;
+
 
 
 ## Credits
