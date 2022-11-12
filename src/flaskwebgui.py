@@ -6,7 +6,7 @@ import platform
 import subprocess
 import socketserver
 from dataclasses import dataclass
-from threading import Thread, Event
+from threading import Thread
 from multiprocessing import Process
 from typing import Callable, Any, List, Union, Dict
 
