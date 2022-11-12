@@ -43,11 +43,12 @@ if __name__ == "__main__":
         height=600,
     ).run()
 
-    # Default start fastapi 2 workers
+    # Default start fastapi with custom port
 
     # FlaskUI(
-    #     app="main:app",
     #     server="fastapi",
+    #     app=app,
+    #     port=3000,
     #     width=800,
     #     height=600,
     # ).run()
@@ -59,7 +60,6 @@ if __name__ == "__main__":
     #     server_kwargs={
     #         "app": app,
     #         "port": 3000,
-    #         "reload": False,
     #     },
     #     width=800,
     #     height=600,
@@ -75,7 +75,6 @@ if __name__ == "__main__":
     #     server_kwargs={
     #         "app": "main:app",
     #         "port": 3000,
-    #         "reload": True,
     #     },
     #     width=800,
     #     height=600,
