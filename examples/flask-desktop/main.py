@@ -31,7 +31,6 @@ def start_flask(**server_kwargs):
 if __name__ == "__main__":
 
     # Default start flask
-
     FlaskUI(
         app=app,
         server="flask",

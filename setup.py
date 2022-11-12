@@ -18,7 +18,7 @@ setup(
     author_email="climente.alin@gmail.com",
     license="MIT",
     py_modules=["flaskwebgui"],
-    # install_requires=REQUIREMENTS,
+    install_requires=["psutil==5.9.4"],
     packages=find_packages(),
     long_description=long_description,
     long_description_content_type="text/markdown",

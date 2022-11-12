@@ -1,10 +1,12 @@
 import os
+import signal
+import psutil
 import tempfile
 import platform
 import subprocess
 import socketserver
 from dataclasses import dataclass
-from threading import Thread
+from threading import Thread, Event
 from multiprocessing import Process
 from typing import Callable, Any, List, Union, Dict
 
@@ -17,6 +19,16 @@ def get_free_port():
     with socketserver.TCPServer(("localhost", 0), None) as s:
         free_port = s.server_address[1]
     return free_port
+
+
+def kill_port(port: int):
+    for proc in psutil.process_iter():
+        try:
+            for conns in proc.connections(kind="inet"):
+                if conns.laddr.port == port:
+                    proc.send_signal(signal.SIGTERM)
+        except psutil.AccessDenied:
+            continue
 
 
 def find_browser_on_linux():
@@ -65,8 +77,6 @@ class DefaultServerFastApi:
     @staticmethod
     def get_server_kwargs(**kwargs):
         server_kwargs = {"app": kwargs.get("app"), "port": kwargs.get("port")}
-        if isinstance(server_kwargs["app"], str):
-            server_kwargs.update({"workers": 2})
         return server_kwargs
 
     @staticmethod
@@ -137,6 +147,7 @@ class FlaskUI:
     server: Union[str, Callable[[Any], None]]
     server_kwargs: dict = None
     app: Any = None
+    port: int = None
     width: int = None
     height: int = None
     fullscreen: bool = True
@@ -148,9 +159,12 @@ class FlaskUI:
 
     def __post_init__(self):
 
-        self.port = (
-            self.server_kwargs.get("port") if self.server_kwargs else get_free_port()
-        )
+        if self.port is None:
+            self.port = (
+                self.server_kwargs.get("port")
+                if self.server_kwargs
+                else get_free_port()
+            )
 
         if isinstance(self.server, str):
             default_server = webserver_dispacher[self.server]
@@ -186,17 +200,26 @@ class FlaskUI:
 
         return flags
 
-    def start_browser(self, server_process: Process):
+    def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
         subprocess.run(self.browser_command)
-        server_process.kill()
+        if isinstance(server_process, Process):
+            server_process.kill()
+        else:
+            kill_port(self.port)
 
     def run(self):
 
         if self.on_startup is not None:
             self.on_startup()
 
-        server_process = Process(target=self.server, kwargs=self.server_kwargs or {})
+        if OPERATING_SYSTEM == "darwin":
+            server_process = Process(
+                target=self.server, kwargs=self.server_kwargs or {}
+            )
+        else:
+            server_process = Thread(target=self.server, kwargs=self.server_kwargs or {})
+
         browser_thread = Thread(target=self.start_browser, args=(server_process,))
 
         try:
