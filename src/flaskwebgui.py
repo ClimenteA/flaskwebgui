@@ -6,6 +6,7 @@ import platform
 import subprocess
 import socketserver
 from dataclasses import dataclass
+import multiprocessing
 from threading import Thread
 from multiprocessing import Process
 from typing import Callable, Any, List, Union, Dict
@@ -214,6 +215,7 @@ class FlaskUI:
             self.on_startup()
 
         if OPERATING_SYSTEM == "darwin":
+            multiprocessing.set_start_method("fork")
             server_process = Process(
                 target=self.server, kwargs=self.server_kwargs or {}
             )
