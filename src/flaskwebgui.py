@@ -1,14 +1,15 @@
 import os
+import time
 import signal
 import psutil
 import tempfile
 import platform
 import subprocess
 import socketserver
-from dataclasses import dataclass
 import multiprocessing
-from threading import Thread
 from multiprocessing import Process
+from threading import Thread
+from dataclasses import dataclass
 from typing import Callable, Any, List, Union, Dict
 
 
@@ -33,29 +34,50 @@ def kill_port(port: int):
 
 
 def find_browser_on_linux():
-    chrome_path = "/usr/bin/google-chrome"
-    if os.path.exists(chrome_path):
-        return chrome_path
-    return subprocess.check_output(["which", "google-chrome"]).decode("utf-8").strip()
+    paths = [
+        "/usr/bin/google-chrome",
+        "/usr/bin/microsoft-edge-stable",
+        "/usr/bin/microsoft-edge",
+        "/usr/bin/brave-browser",
+    ]
+    for path in paths:
+        if os.path.exists(path):
+            return path
+
+    for path in paths:
+        bp = (
+            subprocess.check_output(["which", path.split("/")[-1]])
+            .decode("utf-8")
+            .strip()
+        )
+        if os.path.exists(bp):
+            return bp
+
+    return None
 
 
 def find_browser_on_mac():
-    chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    if os.path.exists(chrome_path):
-        return chrome_path
+    paths = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+    ]
+    for path in paths:
+        if os.path.exists(path):
+            return path
     return None
 
 
 def find_browser_on_windows():
-    edge_path = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
-    if os.path.exists(edge_path):
-        return edge_path
-    edge_path = "C:\Program Files\Microsoft\Edge\Application\msedge.exe"
-    if os.path.exists(edge_path):
-        return edge_path
-    chrome_path = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-    if os.path.exists(chrome_path):
-        return chrome_path
+    paths = [
+        "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        "C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        "C:\Program Files\Google\Chrome\Application\chrome.exe",
+        "C:\Program Files\BraveSoftware\Brave-Browser\Application\\brave.exe",
+    ]
+    for path in paths:
+        if os.path.exists(path):
+            return path
     return None
 
 
@@ -91,7 +113,7 @@ class DefaultServerFastApi:
 class DefaultServerFlask:
     @staticmethod
     def get_server_kwargs(**kwargs):
-        return {"app": kwargs.get("app"), "port": kwargs.get("port"), "threaded": True}
+        return {"app": kwargs.get("app"), "port": kwargs.get("port")}
 
     @staticmethod
     def server(**server_kwargs):
@@ -160,6 +182,8 @@ class FlaskUI:
 
     def __post_init__(self):
 
+        self.__keyboard_interrupt = False
+
         if self.port is None:
             self.port = (
                 self.server_kwargs.get("port")
@@ -204,6 +228,11 @@ class FlaskUI:
     def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
         subprocess.run(self.browser_command)
+
+        if self.browser_path is None:
+            while self.__keyboard_interrupt is False:
+                time.sleep(1)
+
         if isinstance(server_process, Process):
             server_process.kill()
         else:
@@ -230,6 +259,7 @@ class FlaskUI:
             server_process.join()
             browser_thread.join()
         except KeyboardInterrupt:
+            self.__keyboard_interrupt = True
             print("Stopped")
 
         if self.on_shutdown is not None:
