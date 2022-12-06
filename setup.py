@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 # Distribute py wheels
 # python3 setup.py bdist_wheel sdist
