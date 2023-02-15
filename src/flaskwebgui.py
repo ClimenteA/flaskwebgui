@@ -201,7 +201,14 @@ class FlaskUI:
         self.profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
         self.url = f"http://127.0.0.1:{self.port}"
         self.browser_path = self.browser_path or find_browser()
-        self.browser_command = self.browser_command or self.get_browser_command()
+        
+        if self.browser_command:
+            self.__default_command = False
+            self.browser_command = self.browser_command
+        else:
+            self.__default_command = True
+            self.browser_command = self.get_browser_command()
+
 
         if not self.browser_path:
             print("path to chrome not found")
@@ -227,7 +234,11 @@ class FlaskUI:
 
     def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
-        subprocess.run(self.browser_command)
+        
+        if self.__default_command:
+            subprocess.run(self.browser_command)
+        else:
+            subprocess.run([self.browser_path + " "] + self.browser_command + [self.url])
 
         if self.browser_path is None:
             while self.__keyboard_interrupt is False:
