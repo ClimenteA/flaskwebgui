@@ -230,6 +230,7 @@ Checkout `examples` for more information.
 ## Distribution
 
 You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan).
+If pyinstaller failes try pyinstaller version 5.6.2.
 
 
 ## Observations
