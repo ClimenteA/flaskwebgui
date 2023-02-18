@@ -7,10 +7,14 @@ import platform
 import subprocess
 import socketserver
 import multiprocessing
+import win32gui
+import win32con
+import pygetwindow
 from multiprocessing import Process
 from threading import Thread
 from dataclasses import dataclass
 from typing import Callable, Any, List, Union, Dict
+
 
 
 OPERATING_SYSTEM = platform.system().lower()
@@ -173,6 +177,7 @@ class FlaskUI:
     port: int = None
     width: int = None
     height: int = None
+    window_resizing: str = None
     fullscreen: bool = True
     on_startup: Callable = None
     on_shutdown: Callable = None
@@ -207,6 +212,23 @@ class FlaskUI:
             print("path to chrome not found")
             self.browser_command = [PY, "-m", "webbrowser", "-n", self.url]
 
+    
+    def prevent_resizing(self):
+        while True:
+            hwnd = pygetwindow.getWindowsWithTitle(self.window_resizing)
+            if not hwnd: continue
+            style = win32gui.GetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE)
+            style &= ~(win32con.WS_THICKFRAME | win32con.WS_MAXIMIZEBOX)
+            
+            win32gui.SetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE, style)
+            
+            style = win32gui.GetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE)
+            style &= ~win32con.WS_SIZEBOX
+            
+            win32gui.SetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE, style)
+            break
+            
+    
     def get_browser_command(self):
 
         flags = [
@@ -239,6 +261,10 @@ class FlaskUI:
             kill_port(self.port)
 
     def run(self):
+        
+        if OPERATING_SYSTEM == "windows" and self.window_resizing:
+                window_blocker = Thread(target=self.prevent_resizing)
+                window_blocker.start()
 
         if self.on_startup is not None:
             self.on_startup()
@@ -252,12 +278,18 @@ class FlaskUI:
             server_process = Thread(target=self.server, kwargs=self.server_kwargs or {})
 
         browser_thread = Thread(target=self.start_browser, args=(server_process,))
-
+        
         try:
+            
             server_process.start()
             browser_thread.start()
             server_process.join()
             browser_thread.join()
+            
+            if self.prevent_resizing:
+                window_blocker.join()
+            
+                
         except KeyboardInterrupt:
             self.__keyboard_interrupt = True
             print("Stopped")
