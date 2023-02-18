@@ -7,6 +7,9 @@ import platform
 import subprocess
 import socketserver
 import multiprocessing
+import win32gui
+import win32con
+import pygetwindow
 from multiprocessing import Process
 from threading import Thread
 from dataclasses import dataclass
@@ -70,9 +73,9 @@ def find_browser_on_mac():
 
 def find_browser_on_windows():
     paths = [
-        "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
         "C:\Program Files\Microsoft\Edge\Application\msedge.exe",
         "C:\Program Files\Google\Chrome\Application\chrome.exe",
+        "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
         "C:\Program Files\BraveSoftware\Brave-Browser\Application\\brave.exe",
     ]
     for path in paths:
@@ -173,6 +176,7 @@ class FlaskUI:
     port: int = None
     width: int = None
     height: int = None
+    window_resizing: str = None
     fullscreen: bool = True
     on_startup: Callable = None
     on_shutdown: Callable = None
@@ -207,6 +211,24 @@ class FlaskUI:
             print("path to chrome not found")
             self.browser_command = [PY, "-m", "webbrowser", "-n", self.url]
 
+    
+    def prevent_resizing(self):
+        print("\033[31mSCREEN RESIZING FUTURE ONLY WORK IN WINDOWS SYSTEM!\033[0m")
+        while True:
+            hwnd = pygetwindow.getWindowsWithTitle(self.window_resizing)
+            if not hwnd: continue
+            style = win32gui.GetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE)
+            style &= ~(win32con.WS_THICKFRAME | win32con.WS_MAXIMIZEBOX)
+            
+            win32gui.SetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE, style)
+            
+            style = win32gui.GetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE)
+            style &= ~win32con.WS_SIZEBOX
+            
+            win32gui.SetWindowLong(hwnd[0]._hWnd, win32con.GWL_STYLE, style)
+            break
+            
+    
     def get_browser_command(self):
 
         flags = [
@@ -239,6 +261,10 @@ class FlaskUI:
             kill_port(self.port)
 
     def run(self):
+        
+        if OPERATING_SYSTEM == "windows" and self.window_resizing:
+                window_blocker = Thread(target=self.prevent_resizing)
+                window_blocker.start()
 
         if self.on_startup is not None:
             self.on_startup()
@@ -252,12 +278,18 @@ class FlaskUI:
             server_process = Thread(target=self.server, kwargs=self.server_kwargs or {})
 
         browser_thread = Thread(target=self.start_browser, args=(server_process,))
-
+        
         try:
+            
             server_process.start()
             browser_thread.start()
             server_process.join()
             browser_thread.join()
+            
+            if self.prevent_resizing:
+                window_blocker.join()
+            
+                
         except KeyboardInterrupt:
             self.__keyboard_interrupt = True
             print("Stopped")
