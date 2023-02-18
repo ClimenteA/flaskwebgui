@@ -213,6 +213,7 @@ class FlaskUI:
 
     
     def prevent_resizing(self):
+        print("\033[31mSCREEN RESIZING FUTURE ONLY WORK IN WINDOWS SYSTEM!\033[0m")
         while True:
             hwnd = pygetwindow.getWindowsWithTitle(self.window_resizing)
             if not hwnd: continue
