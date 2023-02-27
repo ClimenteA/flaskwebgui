@@ -45,13 +45,16 @@ def find_browser_on_linux():
             return path
 
     for path in paths:
-        bp = (
-            subprocess.check_output(["which", path.split("/")[-1]])
-            .decode("utf-8")
-            .strip()
-        )
-        if os.path.exists(bp):
-            return bp
+        try:
+            bp = (
+                subprocess.check_output(["which", path.split("/")[-1]])
+                .decode("utf-8")
+                .strip()
+            )
+            if os.path.exists(bp):
+                return bp
+        except subprocess.CalledProcessError:
+            pass
 
     return None
 
