@@ -11,6 +11,7 @@ from multiprocessing import Process
 from threading import Thread
 from dataclasses import dataclass
 from typing import Callable, Any, List, Union, Dict
+from contextlib import suppress
 
 
 OPERATING_SYSTEM = platform.system().lower()
@@ -45,7 +46,7 @@ def find_browser_on_linux():
             return path
 
     for path in paths:
-        try:
+        with suppress(subprocess.CalledProcessError):
             bp = (
                 subprocess.check_output(["which", path.split("/")[-1]])
                 .decode("utf-8")
@@ -53,8 +54,6 @@ def find_browser_on_linux():
             )
             if os.path.exists(bp):
                 return bp
-        except subprocess.CalledProcessError:
-            pass
 
     return None
 
