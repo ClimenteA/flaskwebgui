@@ -224,6 +224,34 @@ if __name__ == "__main__":
 ```
 In this way any webframework can be plugged in and the webframework can be started in a more customized manner.
 
+Here is another example with the `nicegui` package:
+
+```python
+
+from flaskwebgui import FlaskUI
+from nicegui import ui
+
+ui.label("Hello Super NiceGUI!")
+ui.button("BUTTON", on_click=lambda: ui.notify("button was pressed"))
+
+def start_nicegui(**kwargs):
+    ui.run(**kwargs)
+
+if __name__ in {"__main__", "__mp_main__"}:
+    DEBUG = False
+
+    if DEBUG:
+        ui.run()
+    else:
+        FlaskUI(
+            server=start_nicegui,
+            server_kwargs={"dark": True, "reload": False, "show": False, "port": 3000},
+            width=800,
+            height=600,
+        ).run()
+
+```
+
 Checkout `examples` for more information.
 
 
@@ -239,7 +267,7 @@ If pyinstaller failes try pyinstaller version 5.6.2.
 - Window control is limited to width, height, fullscreen;
 - Remember the gui is still a browser - pressing F5 will refresh the page + other browser specific things (you can hack it with js though);
 - You don't need production level setup with gunicorn etc - you just have one user to serve;
-- If you want to debug it just run it as you would normally do with `app.run(**etc)`, `uvicorn.run(**etc)`, `python manage.py runserver` etc. flaskwebgui does not provide auto-reload you already have it in the webframework you are using;
+- If you want to debug/reload features - just run it as you would normally do with `app.run(**etc)`, `uvicorn.run(**etc)`, `python manage.py runserver` etc. flaskwebgui does not provide auto-reload you already have it in the webframework you are using;
 
 
 

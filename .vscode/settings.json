@@ -1,6 +1,3 @@
 {
-    "python.pythonPath": "/home/acmt/.virtualenvs/flaskwebgui-hf19E9vW/bin/python",
-    "python.analysis.extraPaths": [
-        "/home/acmt/Documents/flaskwebgui/examples/flask-metro4-theme"
-    ]
+    "python.formatting.provider": "black"
 }

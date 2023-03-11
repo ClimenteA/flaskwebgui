@@ -106,7 +106,6 @@ class DefaultServerFastApi:
 
     @staticmethod
     def server(**server_kwargs):
-
         import uvicorn
 
         uvicorn.run(**server_kwargs)
@@ -137,7 +136,6 @@ class DefaultServerDjango:
 
     @staticmethod
     def server(**server_kwargs):
-
         import waitress
 
         waitress.serve(**server_kwargs)
@@ -183,7 +181,6 @@ class FlaskUI:
     socketio: Any = None
 
     def __post_init__(self):
-
         self.__keyboard_interrupt = False
 
         if self.port is None:
@@ -210,7 +207,6 @@ class FlaskUI:
             self.browser_command = [PY, "-m", "webbrowser", "-n", self.url]
 
     def get_browser_command(self):
-
         flags = [
             self.browser_path,
             f"--user-data-dir={self.profile_dir}",
@@ -241,7 +237,6 @@ class FlaskUI:
             kill_port(self.port)
 
     def run(self):
-
         if self.on_startup is not None:
             self.on_startup()
 
