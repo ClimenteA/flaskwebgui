@@ -232,8 +232,12 @@ class FlaskUI:
                 time.sleep(1)
 
         if isinstance(server_process, Process):
+            if self.on_shutdown is not None:
+                self.on_shutdown()
             server_process.kill()
         else:
+            if self.on_shutdown is not None:
+                self.on_shutdown()
             kill_port(self.port)
 
     def run(self):
@@ -259,5 +263,4 @@ class FlaskUI:
             self.__keyboard_interrupt = True
             print("Stopped")
 
-        if self.on_shutdown is not None:
-            self.on_shutdown()
+        return server_process, browser_thread

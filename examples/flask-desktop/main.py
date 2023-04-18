@@ -17,7 +17,6 @@ def home():
 
 @app.route("/upload", methods=["POST"])
 def upload():
-
     f = request.files["file"]
     f.save(f.filename)
 
@@ -25,7 +24,6 @@ def upload():
 
 
 def start_flask(**server_kwargs):
-
     app = server_kwargs.pop("app", None)
     server_kwargs.pop("debug", None)
 
@@ -38,7 +36,6 @@ def start_flask(**server_kwargs):
 
 
 if __name__ == "__main__":
-
     # app.run(debug=True)
 
     # Default start flask
@@ -47,6 +44,8 @@ if __name__ == "__main__":
         server="flask",
         width=800,
         height=600,
+        on_startup=lambda: print("helooo"),
+        on_shutdown=lambda: print("byee"),
     ).run()
 
     # Default start flask with custom kwargs
