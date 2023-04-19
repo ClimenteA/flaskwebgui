@@ -10,17 +10,25 @@
     <title>FlaskApp</title>
 </head>
 
-<body class="container">
+<body>
 
-    <h1>Flask Desktop Application</h1>
+    <div class="container">
 
-    <a href="\home" class="button">Go home</a>
+        <h1>Flask Desktop Application</h1>
+
+        <a href="\home" class="button">Go home</a>
 
 
-    <form style="margin-top: 50px;" action="/upload" method="post" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <button type="submit">Upload</button>
-    </form>
+        <form style="margin-top: 50px;" action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file">
+            <button type="submit">Upload</button>
+        </form>
+
+    </div>
+
+    <a href="/close" class="exit" role="button">
+        CLOSE
+    </a>
 
 </body>
 

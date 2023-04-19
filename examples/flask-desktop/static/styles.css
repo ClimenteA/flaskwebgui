@@ -1,1 +1,10 @@
 /* Custom CSS */
+
+.exit {
+    float: right;
+    max-width: fit-content;
+    margin-top: 5rem;
+    margin-right: 2rem;
+    background-color: lightcoral !important;
+    border: none;
+}

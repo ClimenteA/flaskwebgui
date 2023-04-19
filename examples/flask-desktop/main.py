@@ -1,6 +1,6 @@
 from flask import Flask, request
 from flask import render_template
-from flaskwebgui import FlaskUI
+from flaskwebgui import FlaskUI, close_application
 
 app = Flask(__name__)
 
@@ -21,6 +21,11 @@ def upload():
     f.save(f.filename)
 
     return render_template("index.html")
+
+
+@app.route("/close", methods=["GET"])
+def close_window():
+    close_application()
 
 
 def start_flask(**server_kwargs):

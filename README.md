@@ -158,6 +158,36 @@ python gui.py
 Install `waitress` for more performance.
 
 
+## Close application using a route
+
+You can close the application using the `close_application` from flaskwebgui. Please note that this requires installing `pyautogui` package.
+
+
+```python
+
+from flaskwebgui import FlaskUI, close_application
+
+# Any python webframework routing here
+
+@app.route("/close", methods=["GET"])
+def close_window():
+    close_application()
+
+```
+
+And somewhere a link: 
+
+```html
+
+<a href="/close" class="exit" role="button">
+    CLOSE
+</a>
+
+```
+
+When `close_application` is called `ctrl+w` keystrokes are pressed to close the chrome window and the current python process is killed. This hacky implemantation does the job. Feel free to open a PR for a cleaner cross platform alternative.
+
+
 ## Configurations
 
 Default FlaskUI class parameters:
