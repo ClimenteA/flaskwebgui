@@ -37,8 +37,12 @@ def kill_port(port: int):
 def close_application():
     import pyautogui
 
+    sig = signal.SIGKILL
+    if os.name == 'nt':
+        sig = signal.SIGTERM
+
     pyautogui.hotkey("ctrl", "w")
-    os.kill(os.getpid(), signal.SIGKILL)
+    os.kill(os.getpid(), sig)
 
 
 def find_browser_on_linux():
