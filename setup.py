@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 # python3 setup.py bdist_wheel sdist
 # twine check dist/*
 # cd dist
-# twine upload *
+# twine upload * -u __token__ -p pypi-token
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
