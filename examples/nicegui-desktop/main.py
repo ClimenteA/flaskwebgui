@@ -1,9 +1,10 @@
-from flaskwebgui import FlaskUI
+from flaskwebgui import FlaskUI, close_application
 from nicegui import ui
 
 
-ui.label("Hello Super NiceGUI!")
+ui.label("Super NiceGUI!")
 ui.button("BUTTON", on_click=lambda: ui.notify("button was pressed"))
+ui.button("CLOSE", on_click=close_application)
 
 
 def start_nicegui(**kwargs):

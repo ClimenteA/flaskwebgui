@@ -3,16 +3,13 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi import FastAPI
-from flaskwebgui import FlaskUI
+from flaskwebgui import FlaskUI, close_application
 
 
 app = FastAPI()
 
 # Mounting default static files
-app.mount("/dist", StaticFiles(directory="dist/"), name="dist")
-app.mount("/css", StaticFiles(directory="dist/css"), name="css")
-app.mount("/img", StaticFiles(directory="dist/img"), name="img")
-app.mount("/js", StaticFiles(directory="dist/js"), name="js")
+app.mount("/public", StaticFiles(directory="dist/"))
 templates = Jinja2Templates(directory="dist")
 
 
@@ -24,6 +21,11 @@ async def root(request: Request):
 @app.get("/home", response_class=HTMLResponse)
 async def home(request: Request):
     return templates.TemplateResponse("some_page.html", {"request": request})
+
+
+@app.get("/close")
+async def close_server():
+    close_application()
 
 
 def start_fastapi(**kwargs):

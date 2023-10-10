@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
-from flaskwebgui import FlaskUI
+from flaskwebgui import FlaskUI, close_application
 
 
 app = Flask(__name__)
@@ -16,6 +16,11 @@ def hello():
 @app.route("/home", methods=["GET"])
 def home():
     return render_template("some_page.html")
+
+
+@app.route("/close", methods=["GET"])
+def close_window():
+    close_application()
 
 
 def start_flask_socketio(**server_kwargs):
