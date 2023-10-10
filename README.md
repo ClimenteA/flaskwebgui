@@ -99,10 +99,7 @@ from flaskwebgui import FlaskUI
 app = FastAPI()
 
 # Mounting default static files
-app.mount("/dist", StaticFiles(directory="dist/"), name="dist")
-app.mount("/css", StaticFiles(directory="dist/css"), name="css")
-app.mount("/img", StaticFiles(directory="dist/img"), name="img")
-app.mount("/js", StaticFiles(directory="dist/js"), name="js")
+app.mount("/public", StaticFiles(directory="dist/"))
 templates = Jinja2Templates(directory="dist")
 
 
