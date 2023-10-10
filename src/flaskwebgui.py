@@ -190,6 +190,7 @@ class FlaskUI:
     browser_path: str = None
     browser_command: List[str] = None
     socketio: Any = None
+    pid: int = None
 
     def __post_init__(self):
         self.__keyboard_interrupt = False
@@ -236,7 +237,9 @@ class FlaskUI:
 
     def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
-        subprocess.run(self.browser_command)
+        p = subprocess.Popen(self.browser_command)
+        self.pid = p.pid
+        p.wait()
 
         if self.browser_path is None:
             while self.__keyboard_interrupt is False:
