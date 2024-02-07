@@ -183,6 +183,7 @@ class FlaskUI:
     fullscreen: bool = True
     on_startup: Callable = None
     on_shutdown: Callable = None
+    profile_dir: str = "flaskwebgui"
     browser_path: str = None
     browser_command: List[str] = None
     socketio: Any = None
@@ -204,7 +205,7 @@ class FlaskUI:
                 app=self.app, port=self.port, flask_socketio=self.socketio
             )
 
-        self.profile_dir = os.path.join(tempfile.gettempdir(), "flaskwebgui")
+        self.profile_dir = os.path.join(tempfile.gettempdir(), self.profile_dir)
         self.url = f"http://127.0.0.1:{self.port}"
         self.browser_path = self.browser_path or find_browser()
         self.browser_command = self.browser_command or self.get_browser_command()
