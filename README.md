@@ -181,7 +181,35 @@ And somewhere a link:
 
 ```
 
-When `close_application` is called `ctrl+w` keystrokes are pressed to close the chrome window and the current python process is killed. This hacky implemantation does the job. Feel free to open a PR for a cleaner cross platform alternative.
+
+## Prevent users from opening browser console
+
+Add below js script to your index.html file to prevent users from opening the browser console.
+You can extend it to prevent other browser specific features.
+
+Native like features are pretty hard to implement because we have access only to javascript.
+
+See [issue 135](https://github.com/ClimenteA/flaskwebgui/issues/135).
+
+```js
+
+<script>
+
+    // Prevent F12 key
+    document.onkeydown = function (e) {
+        if (e.key === "F12") {
+            e.preventDefault();
+        }
+    };
+
+    // Prevent right-click 
+    document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+    });
+
+</script>
+
+```
 
 
 ## Configurations

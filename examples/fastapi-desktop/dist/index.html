@@ -24,6 +24,73 @@
         CLOSE
     </a>
 
+    <script>
+
+        // Prevent F12 key
+        document.onkeydown = function (e) {
+            if (e.key === "F12") {
+                e.preventDefault();
+            }
+        };
+
+        // Prevent right-click to show copy/paste widget instead
+        document.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+
+            const cursorX = e.clientX;
+            const cursorY = e.clientY;
+
+            const dropdown = document.createElement('div');
+            dropdown.style.position = 'absolute';
+            dropdown.style.left = `${cursorX}px`;
+            dropdown.style.top = `${cursorY}px`;
+            dropdown.style.color = 'black';
+            dropdown.style.backgroundColor = 'white';
+            dropdown.style.paddingTop = '5px';
+            dropdown.style.paddingBottom = '5px';
+            dropdown.style.paddingLeft = '10px';
+            dropdown.style.paddingRight = '10px';
+            dropdown.style.cursor = 'pointer';
+
+            // Add "Copy" item
+            const copyItem = document.createElement('div');
+            copyItem.textContent = 'Copy';
+            dropdown.style.marginBottom = '5px';
+            copyItem.addEventListener('click', async () => {
+                try {
+                    const textToCopy = document.selection.createRange().text;
+                    alert(textToCopy)
+                    await navigator.clipboard.writeText(textToCopy);
+                    dropdown.remove();
+                    console.log(`Text '${textToCopy}' copied to clipboard successfully.`);
+                } catch (error) {
+                    console.error(`Error copying to clipboard: ${error}`);
+                }
+            });
+            dropdown.appendChild(copyItem);
+
+            // 
+
+            // Add "Paste" item
+            const pasteItem = document.createElement('div');
+            pasteItem.textContent = 'Paste';
+            dropdown.style.marginBottom = '5px';
+            pasteItem.addEventListener('click', async () => {
+                try {
+                    const clipboardText = await navigator.clipboard.readText();
+                    console.log(`Pasted text: ${clipboardText}`);
+                    dropdown.remove();
+                } catch (error) {
+                    console.error(`Error pasting from clipboard: ${error}`);
+                }
+            });
+            dropdown.appendChild(pasteItem);
+
+            document.body.appendChild(dropdown);
+        });
+
+    </script>
+
 </body>
 
 </html>
