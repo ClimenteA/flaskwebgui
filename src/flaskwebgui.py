@@ -94,14 +94,11 @@ def find_browser_on_windows():
     return None
 
 
-def find_browser():
-    if OPERATING_SYSTEM == "windows":
-        return find_browser_on_windows()
-    if OPERATING_SYSTEM == "linux":
-        return find_browser_on_linux()
-    if OPERATING_SYSTEM == "darwin":
-        return find_browser_on_mac()
-    return None
+browser_path_dispacher: Dict[str, Callable[[], str]] = {
+    "windows": find_browser_on_windows,
+    "linux": find_browser_on_linux,
+    "darwin": find_browser_on_mac,
+}
 
 
 class BaseDefaultServer:
@@ -216,7 +213,10 @@ class FlaskUI:
             tempfile.gettempdir(), self.profile_dir_prefix + uuid.uuid4().hex
         )
         self.url = f"http://127.0.0.1:{self.port}"
-        self.browser_path = self.browser_path or find_browser()
+
+        self.browser_path = (
+            self.browser_path or browser_path_dispacher.get(OPERATING_SYSTEM)()
+        )
         self.browser_command = self.browser_command or self.get_browser_command()
 
         if not self.browser_path:
