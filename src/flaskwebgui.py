@@ -59,7 +59,7 @@ def find_browser_on_linux():
     for path in paths:
         with suppress(subprocess.CalledProcessError):
             bp = (
-                subprocess.check_output(["which", path.split(r"/")[-1]])
+                subprocess.check_output(["which", os.path.basename(path)])
                 .decode("utf-8")
                 .strip()
             )
