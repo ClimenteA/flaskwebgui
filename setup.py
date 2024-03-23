@@ -15,7 +15,7 @@ with open("requirements.txt", "r") as r:
 
 setup(
     name="flaskwebgui",
-    version="1.0.9",
+    version="1.1.0",
     description="Create desktop applications with Flask/Django/FastAPI!",
     url="https://github.com/ClimenteA/flaskwebgui",
     author="Climente Alin",
