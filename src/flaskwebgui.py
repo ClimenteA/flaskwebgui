@@ -51,6 +51,12 @@ def find_browser_on_linux():
         r"/usr/bin/microsoft-edge-stable",
         r"/usr/bin/microsoft-edge",
         r"/usr/bin/brave-browser",
+        r"/usr/bin/chromium",
+        r"/snap/bin/chromium",
+        r"/snap/bin/brave-browser",
+        r"/snap/bin/google-chrome",
+        r"/snap/bin/microsoft-edge-stable",
+        r"/snap/bin/microsoft-edge",
     ]
     for path in paths:
         if os.path.exists(path):
