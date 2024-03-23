@@ -157,8 +157,7 @@ Install `waitress` for more performance.
 
 ## Close application using a route
 
-You can close the application using the `close_application` from flaskwebgui. Please note that this requires installing `pyautogui` package.
-
+You can close the application using the `close_application` from flaskwebgui. 
 
 ```python
 

@@ -14,6 +14,9 @@ from typing import Callable, Any, List, Union, Dict
 from contextlib import suppress
 
 
+FLASKWEBGUI_USED_PORT = None
+FLASKWEBGUI_BROWSER_PROCESS = None
+
 OPERATING_SYSTEM = platform.system().lower()
 PY = "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python"
 
@@ -35,10 +38,10 @@ def kill_port(port: int):
 
 
 def close_application():
-    import pyautogui
+    if FLASKWEBGUI_BROWSER_PROCESS is not None:
+        FLASKWEBGUI_BROWSER_PROCESS.terminate()
 
-    pyautogui.hotkey("ctrl", "w")
-    os.kill(os.getpid(), signal.SIGTERM)
+    kill_port(FLASKWEBGUI_USED_PORT)
 
 
 def find_browser_on_linux():
@@ -190,6 +193,7 @@ class FlaskUI:
 
     def __post_init__(self):
         self.__keyboard_interrupt = False
+        global FLASKWEBGUI_USED_PORT
 
         if self.port is None:
             self.port = (
@@ -197,6 +201,8 @@ class FlaskUI:
                 if self.server_kwargs
                 else get_free_port()
             )
+
+        FLASKWEBGUI_USED_PORT = self.port
 
         if isinstance(self.server, str):
             default_server = webserver_dispacher[self.server]
@@ -233,7 +239,9 @@ class FlaskUI:
 
     def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
-        subprocess.run(self.browser_command)
+        global FLASKWEBGUI_BROWSER_PROCESS
+        FLASKWEBGUI_BROWSER_PROCESS = subprocess.Popen(self.browser_command)
+        FLASKWEBGUI_BROWSER_PROCESS.wait()
 
         if self.browser_path is None:
             while self.__keyboard_interrupt is False:
