@@ -47,10 +47,10 @@ def close_application():
 
 def find_browser_on_linux():
     paths = [
-        "/usr/bin/google-chrome",
-        "/usr/bin/microsoft-edge-stable",
-        "/usr/bin/microsoft-edge",
-        "/usr/bin/brave-browser",
+        r"/usr/bin/google-chrome",
+        r"/usr/bin/microsoft-edge-stable",
+        r"/usr/bin/microsoft-edge",
+        r"/usr/bin/brave-browser",
     ]
     for path in paths:
         if os.path.exists(path):
@@ -59,7 +59,7 @@ def find_browser_on_linux():
     for path in paths:
         with suppress(subprocess.CalledProcessError):
             bp = (
-                subprocess.check_output(["which", path.split("/")[-1]])
+                subprocess.check_output(["which", path.split(r"/")[-1]])
                 .decode("utf-8")
                 .strip()
             )
@@ -71,9 +71,9 @@ def find_browser_on_linux():
 
 def find_browser_on_mac():
     paths = [
-        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+        r"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        r"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+        r"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
     ]
     for path in paths:
         if os.path.exists(path):
@@ -83,10 +83,10 @@ def find_browser_on_mac():
 
 def find_browser_on_windows():
     paths = [
-        "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        "C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-        "C:\Program Files\Google\Chrome\Application\chrome.exe",
-        "C:\Program Files\BraveSoftware\Brave-Browser\Application\\brave.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\BraveSoftware\Brave-Browser\Application\\brave.exe",
     ]
     for path in paths:
         if os.path.exists(path):
