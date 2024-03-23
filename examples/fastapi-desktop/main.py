@@ -9,8 +9,8 @@ from flaskwebgui import FlaskUI, close_application
 app = FastAPI()
 
 # Mounting default static files
-app.mount("/public", StaticFiles(directory="dist/"))
-templates = Jinja2Templates(directory="dist")
+app.mount("/public", StaticFiles(directory="public/"))
+templates = Jinja2Templates(directory="templates")
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -35,7 +35,6 @@ def start_fastapi(**kwargs):
 
 
 if __name__ == "__main__":
-
     # Default start fastapi
 
     FlaskUI(

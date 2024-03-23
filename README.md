@@ -1,9 +1,29 @@
-# Flaskwebgui
+## Flaskwebgui
   
 [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 [![PyPI](https://img.shields.io/pypi/v/flaskwebgui?color=blue)](https://pypi.org/project/flaskwebgui/)
 
 Create desktop applications with Flask/FastAPI/Django!
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Install](#install)
+- [Usage with Flask](#usage-with-flask)
+- [Usage with Flask-SocketIO](#usage-with-flask-socketio)
+- [Usage with FastAPI](#usage-with-fastapi)
+- [Usage with Django](#usage-with-django)
+- [Close application using a route](#close-application-using-a-route)
+- [Prevent users from opening browser console](#prevent-users-from-opening-browser-console)
+- [Configurations](#configurations)
+- [Advanced Usage](#advanced-usage)
+- [Distribution](#distribution)
+- [Observations](#observations)
+- [Credits](#credits)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 
 ## Install
 
@@ -311,8 +331,14 @@ Checkout `examples` for more information.
 
 ## Distribution
 
-You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan).
-If pyinstaller failes try pyinstaller version 5.6.2.
+You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan). If pyinstaller failes try pyinstaller version 5.6.2.
+
+
+```shell
+pyinstaller -w -F  main.py
+```
+
+After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller.
 
 
 ## Observations
