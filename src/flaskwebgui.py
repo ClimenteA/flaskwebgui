@@ -243,8 +243,9 @@ class FlaskUI:
         elif self.fullscreen:
             flags.extend(["--start-maximized"])
 
-        for flag in self.extra_flags:
-            flags.extend([flag])
+        if self.extra_flags:
+            for flag in self.extra_flags:
+                flags.extend([flag])
 
         flags.extend([f"--app={self.url}"])
 
