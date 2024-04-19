@@ -245,6 +245,7 @@ Default FlaskUI class parameters:
 - `fullscreen: bool = True`: start app in fullscreen (maximized);
 - `on_startup: Callable = None`: function to before starting the browser and webserver;
 - `on_shutdown: Callable = None`: function to after the browser and webserver shutdown;
+- `extra_flags: List[str] = None`: list of additional flags for the browser command;
 - `browser_path: str = None`: set path to chrome executable or let the defaults do that;
 - `browser_command: List[str] = None`: command line with starts chrome in `app` mode;
 - `socketio: Any = None`: socketio instance in case of flask_socketio;

@@ -190,6 +190,7 @@ class FlaskUI:
     fullscreen: bool = True
     on_startup: Callable = None
     on_shutdown: Callable = None
+    extra_flags: List[str] = None
     browser_path: str = None
     browser_command: List[str] = None
     socketio: Any = None
@@ -241,6 +242,10 @@ class FlaskUI:
             flags.extend([f"--window-size={self.width},{self.height}"])
         elif self.fullscreen:
             flags.extend(["--start-maximized"])
+
+        if self.extra_flags:
+            for flag in self.extra_flags:
+                flags.extend([flag])
 
         flags.extend([f"--app={self.url}"])
 
