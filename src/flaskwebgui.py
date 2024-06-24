@@ -52,19 +52,13 @@ def find_browser_on_linux():
         r"/usr/bin/microsoft-edge",
         r"/usr/bin/brave-browser",
         r"/usr/bin/chromium",
-        # System installed web browser made avaible via sandbox permissions for apps
-        # running as flatpak. This requiere make the host-os accesible to the flatpak
-        # See:
-        # - https://docs.flatpak.org/en/latest/sandbox-permissions.html
-        #
-        # host-os: Everything in host and /usr, /bin, /sbin, /lib{32, 64} /usr is mounted at /run/host/usr
-        #
+        # Web browsers installed via flatpak portals
         r"/run/host/usr/bin/google-chrome",
         r"/run/host/usr/bin/microsoft-edge-stable",
         r"/run/host/usr/bin/microsoft-edge",
         r"/run/host/usr/bin/brave-browser",
         r"/run/host/usr/bin/chromium",
-        # Web browsers installed vía snap
+        # Web browsers installed via snap
         r"/snap/bin/chromium",
         r"/snap/bin/brave-browser",
         r"/snap/bin/google-chrome",
