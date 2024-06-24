@@ -334,13 +334,20 @@ Checkout `examples` for more information.
 
 You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan). If pyinstaller failes try pyinstaller version 5.6.2.
 
-
 ```shell
 pyinstaller -w -F  main.py
 ```
 
 After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller.
 
+If you want your desktop application to be available to many Linux users you can publish your application as a [flatpak](https://flathub.org/), to do this, you must:
+
+1. Include a icon file.
+2. Include a .desktop launcher.
+3. Write your xml.metainfo file.
+4. Create a flatpak manifest. 
+
+Detailed info is avalible in the [flatpak docs](https://docs.flatpak.org/en/latest/conventions.html).
 
 ## Observations
 
