@@ -52,6 +52,13 @@ def find_browser_on_linux():
         r"/usr/bin/microsoft-edge",
         r"/usr/bin/brave-browser",
         r"/usr/bin/chromium",
+        # Web browsers installed via flatpak portals
+        r"/run/host/usr/bin/google-chrome",
+        r"/run/host/usr/bin/microsoft-edge-stable",
+        r"/run/host/usr/bin/microsoft-edge",
+        r"/run/host/usr/bin/brave-browser",
+        r"/run/host/usr/bin/chromium",
+        # Web browsers installed via snap
         r"/snap/bin/chromium",
         r"/snap/bin/brave-browser",
         r"/snap/bin/google-chrome",
