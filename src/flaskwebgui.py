@@ -1,8 +1,8 @@
 import os
+import shutil
 import time
 import uuid
 import signal
-import psutil
 import tempfile
 import platform
 import subprocess
@@ -11,9 +11,10 @@ import multiprocessing
 from multiprocessing import Process
 from threading import Thread
 from dataclasses import dataclass
-from typing import Callable, Any, List, Union, Dict
+from typing import Any, Callable, Dict, List, Union
 from contextlib import suppress
 
+import psutil
 
 FLASKWEBGUI_USED_PORT = None
 FLASKWEBGUI_BROWSER_PROCESS = None
@@ -229,7 +230,7 @@ class FlaskUI:
         self.url = f"http://127.0.0.1:{self.port}"
 
         self.browser_path = (
-            self.browser_path or browser_path_dispacher.get(OPERATING_SYSTEM)()
+                self.browser_path or browser_path_dispacher.get(OPERATING_SYSTEM)()
         )
         self.browser_command = self.browser_command or self.get_browser_command()
 
@@ -271,10 +272,12 @@ class FlaskUI:
         if isinstance(server_process, Process):
             if self.on_shutdown is not None:
                 self.on_shutdown()
+            shutil.rmtree(self.profile_dir, ignore_errors=True)
             server_process.kill()
         else:
             if self.on_shutdown is not None:
                 self.on_shutdown()
+            shutil.rmtree(self.profile_dir, ignore_errors=True)
             kill_port(self.port)
 
     def run(self):
