@@ -22,15 +22,6 @@ FLASKWEBGUI_BROWSER_PROCESS = None
 OPERATING_SYSTEM = platform.system().lower()
 PY = "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python"
 
-TEMP_DIRS_CREATED = []
-
-
-def cleanup_temp_dirs():
-    for dir_path in TEMP_DIRS_CREATED:
-        if os.path.exists(dir_path):
-            print(f'Removing Temp dir {dir_path}')
-            shutil.rmtree(dir_path, ignore_errors=True)
-
 
 def get_free_port():
     with socketserver.TCPServer(("localhost", 0), None) as s:
@@ -236,8 +227,6 @@ class FlaskUI:
         self.profile_dir = os.path.join(
             tempfile.gettempdir(), self.profile_dir_prefix + uuid.uuid4().hex
         )
-
-        TEMP_DIRS_CREATED.append(self.profile_dir)
         self.url = f"http://127.0.0.1:{self.port}"
 
         self.browser_path = (
@@ -283,12 +272,12 @@ class FlaskUI:
         if isinstance(server_process, Process):
             if self.on_shutdown is not None:
                 self.on_shutdown()
-            cleanup_temp_dirs()
+            shutil.rmtree(self.profile_dir, ignore_errors=True)
             server_process.kill()
         else:
             if self.on_shutdown is not None:
                 self.on_shutdown()
-            cleanup_temp_dirs()
+            shutil.rmtree(self.profile_dir, ignore_errors=True)
             kill_port(self.port)
 
     def run(self):
