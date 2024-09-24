@@ -3,6 +3,7 @@ import shutil
 import time
 import uuid
 import signal
+import psutil
 import tempfile
 import platform
 import subprocess
@@ -14,7 +15,6 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Union
 from contextlib import suppress
 
-import psutil
 
 FLASKWEBGUI_USED_PORT = None
 FLASKWEBGUI_BROWSER_PROCESS = None
@@ -159,8 +159,12 @@ class DefaultServerDjango:
     @staticmethod
     def server(**server_kwargs):
         import waitress
+        from whitenoise import WhiteNoise
 
-        waitress.serve(**server_kwargs)
+        application = WhiteNoise(server_kwargs["app"])
+        server_kwargs.pop("app")
+
+        waitress.serve(application, threads=100, **server_kwargs)
 
 
 class DefaultServerFlaskSocketIO:
@@ -262,6 +266,10 @@ class FlaskUI:
     def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
         global FLASKWEBGUI_BROWSER_PROCESS
+
+        if OPERATING_SYSTEM == "darwin":
+            multiprocessing.set_start_method("fork")
+            
         FLASKWEBGUI_BROWSER_PROCESS = subprocess.Popen(self.browser_command)
         FLASKWEBGUI_BROWSER_PROCESS.wait()
 

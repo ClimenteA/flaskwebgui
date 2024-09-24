@@ -1,5 +1,5 @@
 ## Flaskwebgui
-  
+
 [![Downloads](https://pepy.tech/badge/flaskwebgui)](https://pepy.tech/project/flaskwebgui)
 [![PyPI](https://img.shields.io/pypi/v/flaskwebgui?color=blue)](https://pypi.org/project/flaskwebgui/)
 
@@ -7,7 +7,8 @@ Create desktop applications with Flask/FastAPI/Django!
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+**Table of Contents** _generated with [DocToc](https://github.com/thlorenz/doctoc)_
 
 - [Install](#install)
 - [Usage with Flask](#usage-with-flask)
@@ -24,22 +25,22 @@ Create desktop applications with Flask/FastAPI/Django!
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-
 ## Install
 
-``` py
+```py
 pip install flaskwebgui
 ```
-If you are using `conda` checkout [this link](https://github.com/conda-forge/flaskwebgui-feedstock).
 
+If you are using `conda` checkout [this link](https://github.com/conda-forge/flaskwebgui-feedstock).
 
 ## Usage with Flask
 
 Let's say we have the following flask application:
+
 ```py
 #main.py
 
-from flask import Flask  
+from flask import Flask
 from flask import render_template
 from flaskwebgui import FlaskUI # import FlaskUI
 
@@ -47,11 +48,11 @@ app = Flask(__name__)
 
 
 @app.route("/")
-def hello():  
+def hello():
     return render_template('index.html')
 
 @app.route("/home", methods=['GET'])
-def home(): 
+def home():
     return render_template('some_page.html')
 
 
@@ -60,15 +61,15 @@ if __name__ == "__main__":
   # app.run()
   # If you want to view the flaskwebgui window:
   FlaskUI(app=app, server="flask").run()
-   
+
 ```
 
 Install [`waitress`](https://pypi.org/project/waitress/) for more performance.
 
-
 ## Usage with Flask-SocketIO
 
 Let's say we have the following SocketIO application:
+
 ```py
 #main.py
 from flask import Flask, render_template
@@ -81,11 +82,11 @@ app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
 @app.route("/")
-def hello():  
+def hello():
     return render_template('index.html')
 
 @app.route("/home", methods=['GET'])
-def home(): 
+def home():
     return render_template('some_page.html')
 
 
@@ -103,10 +104,10 @@ if __name__ == '__main__':
 
 App will be served by `flask_socketio`.
 
-
 ## Usage with FastAPI
 
 Pretty much the same, below you have the `main.py` file:
+
 ```py
 #main.py
 from fastapi import FastAPI, Request
@@ -129,20 +130,47 @@ async def root(request: Request):
 
 
 @app.get("/home", response_class=HTMLResponse)
-async def home(request: Request): 
+async def home(request: Request):
     return templates.TemplateResponse("some_page.html", {"request": request})
 
 
 if __name__ == "__main__":
-    
+
     FlaskUI(app=app, server="fastapi").run()
 
 ```
 
-FastApi will be served by `uvicorn`.  
-
+FastApi will be served by `uvicorn`.
 
 ## Usage with Django
+
+Install [`waitress`](https://pypi.org/project/waitress/) and [`whitenoise`](https://pypi.org/project/whitenoise/) to make it work nicely.
+
+In the `settings.py` file you need to do the following.
+
+Configure static/media files:
+
+```py
+STATIC_URL = "static/"
+STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+if not os.path.exists(MEDIA_ROOT):
+    os.makedirs(MEDIA_ROOT)
+
+```
+
+Add `whitenoise` to MIDDLEWARE (to handle static files):
+
+```py
+MIDDLEWARE = [
+    "whitenoise.middleware.WhiteNoiseMiddleware",
+    ...
+]
+```
 
 Next to `manage.py` file create a `gui.py` file where you need to import `application` from project's `wsgi.py` file.
 
@@ -152,7 +180,7 @@ Next to `manage.py` file create a `gui.py` file where you need to import `applic
 │   ├── settings.py
 │   ├── urls.py
 │   └── wsgi.py
-├── gui.py # this 
+├── gui.py # this
 ├── manage.py
 ```
 
@@ -167,17 +195,16 @@ if __name__ == "__main__":
     FlaskUI(app=app, server="django").run()
 
 ```
+
 Next start the application with:
-```py
-python gui.py  
+
+```shell
+python gui.py
 ```
-
-Install `waitress` for more performance.
-
 
 ## Close application using a route
 
-You can close the application using the `close_application` from flaskwebgui. 
+You can close the application using the `close_application` from flaskwebgui.
 
 ```python
 
@@ -191,16 +218,11 @@ def close_window():
 
 ```
 
-And somewhere a link: 
+And somewhere a link:
 
 ```html
-
-<a href="/close" class="exit" role="button">
-    CLOSE
-</a>
-
+<a href="/close" class="exit" role="button"> CLOSE </a>
 ```
-
 
 ## Prevent users from opening browser console
 
@@ -222,7 +244,7 @@ See [issue 135](https://github.com/ClimenteA/flaskwebgui/issues/135).
         }
     };
 
-    // Prevent right-click 
+    // Prevent right-click
     document.addEventListener("contextmenu", function (e) {
         e.preventDefault();
     });
@@ -230,7 +252,6 @@ See [issue 135](https://github.com/ClimenteA/flaskwebgui/issues/135).
 </script>
 
 ```
-
 
 ## Configurations
 
@@ -251,8 +272,7 @@ Default FlaskUI class parameters:
 - `socketio: Any = None`: socketio instance in case of flask_socketio;
 
 Develop your app as you would normally do, add flaskwebgui at the end or for tests.
-**flaskwebgui doesn't interfere with your way of doing an application** it just helps converting it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
-
+**flaskwebgui doesn't interfere with your way of doing an application** it just helps "converting" it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
 
 ## Advanced Usage
 
@@ -297,6 +317,7 @@ if __name__ == "__main__":
     ).run()
 
 ```
+
 In this way any webframework can be plugged in and the webframework can be started in a more customized manner.
 
 Here is another example with the `nicegui` package:
@@ -329,7 +350,6 @@ if __name__ in {"__main__", "__mp_main__"}:
 
 Checkout `examples` for more information.
 
-
 ## Distribution
 
 You can distribute it as a standalone desktop app with **pyinstaller** or [**pyvan**](https://github.com/ClimenteA/pyvan). If pyinstaller failes try pyinstaller version 5.6.2.
@@ -338,9 +358,10 @@ You can distribute it as a standalone desktop app with **pyinstaller** or [**pyv
 pyinstaller -w -F  main.py
 ```
 
-After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller.
+After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller. Or add them into the executable: `pyinstaller -w -F --add-data "templates;templates" --add-data "static;static" main.py` (for Linux change `;` with `:`).
 
 If you want your desktop application to be installed via snap or flatpack (Linux) checkout:
+
 - [cacao-accounting-flatpak](https://github.com/cacao-accounting/cacao-accounting-flatpak);
 - [cacao-accounting-snap](https://github.com/cacao-accounting/cacao-accounting-snap);
 
@@ -354,13 +375,10 @@ Made by [William Moreno](https://github.com/williamjmorenor).
 - You don't need production level setup with gunicorn etc - you just have one user to serve;
 - If you want to debug/reload features - just run it as you would normally do with `app.run(**etc)`, `uvicorn.run(**etc)`, `python manage.py runserver` etc. flaskwebgui does not provide auto-reload you already have it in the webframework you are using;
 
-
-
 ## Credits
+
 It's a combination of https://github.com/Widdershin/flask-desktop and https://github.com/ChrisKnott/Eel
 
 It has some advantages over flask-desktop because it doesn't use PyQt5, so you won't have any issues regarding licensing and over Eel because you don't need to learn any logic other than Flask/Django/FastAPI/etc.
 
 **Submit any questions/issues you have! Fell free to fork it and improve it!**
-
-
