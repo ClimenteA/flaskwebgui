@@ -6,6 +6,7 @@ import signal
 import psutil
 import tempfile
 import platform
+import webbrowser
 import subprocess
 import socketserver
 import multiprocessing
@@ -13,14 +14,45 @@ from multiprocessing import Process
 from threading import Thread
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Union
-from contextlib import suppress
 
 
 FLASKWEBGUI_USED_PORT = None
 FLASKWEBGUI_BROWSER_PROCESS = None
 
+DEFAULT_BROWSER = webbrowser.get().name
 OPERATING_SYSTEM = platform.system().lower()
 PY = "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python"
+
+
+linux_browser_paths = [
+    r"/usr/bin/google-chrome",
+    r"/usr/bin/microsoft-edge",
+    r"/usr/bin/brave-browser",
+    r"/usr/bin/chromium",
+    # Web browsers installed via flatpak portals
+    r"/run/host/usr/bin/google-chrome",
+    r"/run/host/usr/bin/microsoft-edge",
+    r"/run/host/usr/bin/brave-browser",
+    r"/run/host/usr/bin/chromium",
+    # Web browsers installed via snap
+    r"/snap/bin/chromium",
+    r"/snap/bin/brave-browser",
+    r"/snap/bin/google-chrome",
+    r"/snap/bin/microsoft-edge",
+]
+
+mac_browser_paths = [
+    r"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    r"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+    r"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
+]
+
+windows_browser_paths = [
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+    r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
+]
 
 
 def get_free_port():
@@ -32,7 +64,7 @@ def get_free_port():
 def kill_port(port: int):
     for proc in psutil.process_iter():
         try:
-            for conns in proc.connections(kind="inet"):
+            for conns in proc.net_connections(kind="inet"):
                 if conns.laddr.port == port:
                     proc.send_signal(signal.SIGTERM)
         except psutil.AccessDenied:
@@ -46,72 +78,27 @@ def close_application():
     kill_port(FLASKWEBGUI_USED_PORT)
 
 
-def find_browser_on_linux():
-    paths = [
-        r"/usr/bin/google-chrome",
-        r"/usr/bin/microsoft-edge-stable",
-        r"/usr/bin/microsoft-edge",
-        r"/usr/bin/brave-browser",
-        r"/usr/bin/chromium",
-        # Web browsers installed via flatpak portals
-        r"/run/host/usr/bin/google-chrome",
-        r"/run/host/usr/bin/microsoft-edge-stable",
-        r"/run/host/usr/bin/microsoft-edge",
-        r"/run/host/usr/bin/brave-browser",
-        r"/run/host/usr/bin/chromium",
-        # Web browsers installed via snap
-        r"/snap/bin/chromium",
-        r"/snap/bin/brave-browser",
-        r"/snap/bin/google-chrome",
-        r"/snap/bin/microsoft-edge-stable",
-        r"/snap/bin/microsoft-edge",
-    ]
-    for path in paths:
-        if os.path.exists(path):
+def find_browser_in_paths(browser_paths: List[str]):
+
+    compatible_browser_path = None
+    for path in browser_paths:
+
+        if not os.path.exists(path):
+            continue
+
+        if compatible_browser_path is None:
+            compatible_browser_path = path
+
+        if DEFAULT_BROWSER in path:
             return path
 
-    for path in paths:
-        with suppress(subprocess.CalledProcessError):
-            bp = (
-                subprocess.check_output(["which", os.path.basename(path)])
-                .decode("utf-8")
-                .strip()
-            )
-            if os.path.exists(bp):
-                return bp
-
-    return None
-
-
-def find_browser_on_mac():
-    paths = [
-        r"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-        r"/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        r"/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge",
-    ]
-    for path in paths:
-        if os.path.exists(path):
-            return path
-    return None
-
-
-def find_browser_on_windows():
-    paths = [
-        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-        r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
-    ]
-    for path in paths:
-        if os.path.exists(path):
-            return path
-    return None
+    return compatible_browser_path
 
 
 browser_path_dispacher: Dict[str, Callable[[], str]] = {
-    "windows": find_browser_on_windows,
-    "linux": find_browser_on_linux,
-    "darwin": find_browser_on_mac,
+    "windows": lambda: find_browser_in_paths(windows_browser_paths),
+    "linux": lambda: find_browser_in_paths(linux_browser_paths),
+    "darwin": lambda: find_browser_in_paths(mac_browser_paths),
 }
 
 
@@ -207,6 +194,7 @@ class FlaskUI:
     browser_command: List[str] = None
     socketio: Any = None
     profile_dir_prefix: str = "flaskwebgui"
+    app_mode: bool = True
 
     def __post_init__(self):
         self.__keyboard_interrupt = False
@@ -234,42 +222,46 @@ class FlaskUI:
         self.url = f"http://127.0.0.1:{self.port}"
 
         self.browser_path = (
-                self.browser_path or browser_path_dispacher.get(OPERATING_SYSTEM)()
+            self.browser_path or browser_path_dispacher.get(OPERATING_SYSTEM)()
         )
         self.browser_command = self.browser_command or self.get_browser_command()
 
-        if not self.browser_path:
-            print("path to chrome not found")
-            self.browser_command = [PY, "-m", "webbrowser", "-n", self.url]
-
     def get_browser_command(self):
+        # https://peter.sh/experiments/chromium-command-line-switches/
+
         flags = [
             self.browser_path,
             f"--user-data-dir={self.profile_dir}",
             "--new-window",
+            "--no-default-browser-check",
+            "--allow-insecure-localhost",
             "--no-first-run",
+            "--disable-sync",
         ]
-
-        if self.width and self.height:
+    
+        if self.width and self.height and self.app_mode:
             flags.extend([f"--window-size={self.width},{self.height}"])
         elif self.fullscreen:
             flags.extend(["--start-maximized"])
 
         if self.extra_flags:
-            for flag in self.extra_flags:
-                flags.extend([flag])
+            flags = flags + self.extra_flags
 
-        flags.extend([f"--app={self.url}"])
+        if self.app_mode:
+            flags.append(f"--app={self.url}")
+        else:
+            flags.extend(["--guest", self.url])
 
         return flags
-
+    
+    
     def start_browser(self, server_process: Union[Thread, Process]):
         print("Command:", " ".join(self.browser_command))
         global FLASKWEBGUI_BROWSER_PROCESS
 
         if OPERATING_SYSTEM == "darwin":
             multiprocessing.set_start_method("fork")
-            
+
         FLASKWEBGUI_BROWSER_PROCESS = subprocess.Popen(self.browser_command)
         FLASKWEBGUI_BROWSER_PROCESS.wait()
 

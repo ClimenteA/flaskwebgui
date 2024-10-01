@@ -42,6 +42,7 @@ if __name__ == "__main__":
         server="fastapi",
         width=800,
         height=600,
+        app_mode=False,
     ).run()
 
     # Default start fastapi with custom port

@@ -18,6 +18,7 @@ if __name__ == "__main__":
         server="django",
         width=800,
         height=600,
+        app_mode=True
     ).run()
 
     # Default start django with custom kwargs

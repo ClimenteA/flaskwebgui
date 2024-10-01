@@ -268,8 +268,10 @@ Default FlaskUI class parameters:
 - `on_shutdown: Callable = None`: function to after the browser and webserver shutdown;
 - `extra_flags: List[str] = None`: list of additional flags for the browser command;
 - `browser_path: str = None`: set path to chrome executable or let the defaults do that;
-- `browser_command: List[str] = None`: command line with starts chrome in `app` mode;
+- `browser_command: List[str] = None`: command line with starts chrome in `app` mode (example of browser command: `["/path/to/browser-executable", "--user-data-dir=/path/to/profile", "--new-window", "--no-default-browser-check", "--allow-insecure-localhost", "--no-first-run", "--disable-sync", "--window-size=800,600", "--app=http://127.0.0.1:46899"]`);
 - `socketio: Any = None`: socketio instance in case of flask_socketio;
+- `app_mode: bool = True`: by defaults stats in app mode (browser without address bar) if false will start the browser in guest mode (with address bar);
+
 
 Develop your app as you would normally do, add flaskwebgui at the end or for tests.
 **flaskwebgui doesn't interfere with your way of doing an application** it just helps "converting" it into a desktop app more easily with pyinstaller or [pyvan](https://github.com/ClimenteA/pyvan).
@@ -358,7 +360,7 @@ You can distribute it as a standalone desktop app with **pyinstaller** or [**pyv
 pyinstaller -w -F  main.py
 ```
 
-After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller. Or add them into the executable: `pyinstaller -w -F --add-data "templates;templates" --add-data "static;static" main.py` (for Linux change `;` with `:`).
+After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller. Or add them into the executable: `pyinstaller --name your-app-name --add-data "dbsqlite:dbsqlite" --add-data "templates:templates" --add-data "static:static" --collect-all name_of_package_that_pyinstaller_did_not_found gui.py` (for Windows change `:` with `;`). 
 
 If you want your desktop application to be installed via snap or flatpack (Linux) checkout:
 
