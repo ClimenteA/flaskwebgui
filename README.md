@@ -271,6 +271,7 @@ Default FlaskUI class parameters:
 - `browser_command: List[str] = None`: command line with starts chrome in `app` mode (example of browser command: `["/path/to/browser-executable", "--user-data-dir=/path/to/profile", "--new-window", "--no-default-browser-check", "--allow-insecure-localhost", "--no-first-run", "--disable-sync", "--window-size=800,600", "--app=http://127.0.0.1:46899"]`);
 - `socketio: Any = None`: socketio instance in case of flask_socketio;
 - `app_mode: bool = True`: by defaults stats in app mode (browser without address bar) if false will start the browser in guest mode (with address bar);
+- `browser_pid: int = None`: when the app starts `browser_pid` will be filled with the pid of the process opened with subprocess.Popen;
 
 
 Develop your app as you would normally do, add flaskwebgui at the end or for tests.
