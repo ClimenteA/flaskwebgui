@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Bottle App</title>
+        <link rel="icon" href="https://zany.sh/favicon.svg?emoji=🧭"/>
+    </head>
+    <body>
+        <h1>Hello</h1>
+        <p>world</p>
+    </body>
+    <script type="module">
+        var x = await fetch("/forum?id=test")
+        var y = await x.json()
+        console.log(y)
+    </script>
+</html>
