@@ -166,7 +166,9 @@ class DefaultServerFlaskSocketIO:
     @staticmethod
     def server(**server_kwargs):
         server_kwargs["flask_socketio"].run(
-            server_kwargs["app"], port=server_kwargs["port"]
+            server_kwargs["app"],
+            port=server_kwargs["port"],
+            allow_unsafe_werkzeug=True  # required for Flask-SocketIO >=5.3.0
         )
 
 
