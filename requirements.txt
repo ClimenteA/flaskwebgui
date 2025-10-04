@@ -1,2 +1,2 @@
-psutil~=7
+psutil~=7.0
 
