@@ -31,8 +31,6 @@ Create desktop applications with Flask/FastAPI/Django!
 pip install flaskwebgui
 ```
 
-If you are using `conda` checkout [this link](https://github.com/conda-forge/flaskwebgui-feedstock).
-
 ## Usage with Flask
 
 Let's say we have the following flask application:
@@ -272,6 +270,7 @@ Default FlaskUI class parameters:
 - `socketio: Any = None`: socketio instance in case of flask_socketio;
 - `app_mode: bool = True`: by defaults stats in app mode (browser without address bar) if false will start the browser in guest mode (with address bar);
 - `browser_pid: int = None`: when the app starts `browser_pid` will be filled with the pid of the process opened with subprocess.Popen;
+- `auto_close: bool = True`: by default if browser is closed the server will close as well, setting this to False will leave the server opened;
 
 
 Develop your app as you would normally do, add flaskwebgui at the end or for tests.

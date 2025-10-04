@@ -4,6 +4,7 @@ import time
 import uuid
 import signal
 import psutil
+import logging
 import tempfile
 import platform
 import webbrowser
@@ -16,12 +17,25 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Union
 
 
+logger = logging.getLogger('flaskwebgui')
+if not logger.handlers:
+    log_level_str = os.environ.get('FLASKWEBGUI_LOG_LEVEL', 'DEBUG').upper()
+    log_level = getattr(logging, log_level_str, logging.WARNING)
+    logging.basicConfig(level=log_level, format='[FLASKWEBGUI] %(levelname)s - %(asctime)s - %(message)s')
+
+
 FLASKWEBGUI_USED_PORT = None
 FLASKWEBGUI_BROWSER_PROCESS = None
 
 DEFAULT_BROWSER = webbrowser.get().name
 OPERATING_SYSTEM = platform.system().lower()
 PY = "python3" if OPERATING_SYSTEM in ["linux", "darwin"] else "python"
+
+try:
+    if OPERATING_SYSTEM == "darwin":
+        multiprocessing.set_start_method("fork")
+except Exception as ex:
+    logger.warning(f"Could not set start method 'fork' for mac: {ex}")
 
 
 linux_browser_paths = [
@@ -48,9 +62,9 @@ mac_browser_paths = [
 ]
 
 windows_browser_paths = [
+    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
     r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
-    r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
 ]
 
@@ -198,6 +212,7 @@ class FlaskUI:
     profile_dir_prefix: str = "flaskwebgui"
     app_mode: bool = True
     browser_pid: int = None
+    auto_close: bool = True
 
     def __post_init__(self):
         self.__keyboard_interrupt = False
@@ -259,16 +274,16 @@ class FlaskUI:
     
     
     def start_browser(self, server_process: Union[Thread, Process]):
-        print("Command:", " ".join(self.browser_command))
+        logger.info("Command:", " ".join(self.browser_command))
         global FLASKWEBGUI_BROWSER_PROCESS
-
-        if OPERATING_SYSTEM == "darwin":
-            multiprocessing.set_start_method("fork")
 
         FLASKWEBGUI_BROWSER_PROCESS = subprocess.Popen(self.browser_command)
         self.browser_pid = FLASKWEBGUI_BROWSER_PROCESS.pid
         FLASKWEBGUI_BROWSER_PROCESS.wait()
 
+        if not self.auto_close:
+            return
+        
         if self.browser_path is None:
             while self.__keyboard_interrupt is False:
                 time.sleep(1)
@@ -291,7 +306,6 @@ class FlaskUI:
             self.on_startup()
 
         if OPERATING_SYSTEM == "darwin":
-            multiprocessing.set_start_method("fork")
             server_process = Process(
                 target=self.server, kwargs=self.server_kwargs or {}
             )
@@ -307,6 +321,6 @@ class FlaskUI:
             browser_thread.join()
         except KeyboardInterrupt:
             self.__keyboard_interrupt = True
-            print("Stopped")
+            logger.info("Stopped")
 
         return server_process, browser_thread
