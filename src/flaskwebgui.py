@@ -274,7 +274,7 @@ class FlaskUI:
     
     
     def start_browser(self, server_process: Union[Thread, Process]):
-        logger.info(f"Command: {" ".join(self.browser_command)}")
+        logger.info(f"Command: {' '.join(self.browser_command)}")
         global FLASKWEBGUI_BROWSER_PROCESS
 
         FLASKWEBGUI_BROWSER_PROCESS = subprocess.Popen(self.browser_command)
