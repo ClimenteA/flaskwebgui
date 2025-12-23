@@ -40,19 +40,26 @@ except Exception as ex:
 
 linux_browser_paths = [
     r"/usr/bin/google-chrome",
+    r"/usr/bin/google-chrome-stable",
     r"/usr/bin/microsoft-edge",
     r"/usr/bin/brave-browser",
     r"/usr/bin/chromium",
+    r"/usr/bin/chromium-browser",
+    r"/usr/bin/firefox",
     # Web browsers installed via flatpak portals
     r"/run/host/usr/bin/google-chrome",
+    r"/run/host/usr/bin/google-chrome-stable",
     r"/run/host/usr/bin/microsoft-edge",
     r"/run/host/usr/bin/brave-browser",
     r"/run/host/usr/bin/chromium",
+    r"/run/host/usr/bin/chromium-browser",
+    r"/run/host/usr/bin/firefox",
     # Web browsers installed via snap
     r"/snap/bin/chromium",
     r"/snap/bin/brave-browser",
     r"/snap/bin/google-chrome",
     r"/snap/bin/microsoft-edge",
+    r"/snap/bin/firefox",
 ]
 
 mac_browser_paths = [
