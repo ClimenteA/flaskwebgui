@@ -63,8 +63,9 @@ if __name__ == "__main__":
 ```
 
 Install [`waitress`](https://pypi.org/project/waitress/) for more performance.
-### Note that the default taskbar icon for FLaskWebGUI is the Google Chrome icon. 
-### If you want to chnage it, add a favicon.ico to your html file. This applies for any example shown in this README.
+
+> Note: To change the app icon add favicon.ico in head tag of your base.html
+
 ## Usage with Flask-SocketIO
 
 Let's say we have the following SocketIO application:
