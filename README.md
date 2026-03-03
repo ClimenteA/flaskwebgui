@@ -64,6 +64,8 @@ if __name__ == "__main__":
 
 Install [`waitress`](https://pypi.org/project/waitress/) for more performance.
 
+> Note: To change the app icon add favicon.ico in head tag of your base.html
+
 ## Usage with Flask-SocketIO
 
 Let's say we have the following SocketIO application:
