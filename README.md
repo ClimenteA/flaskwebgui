@@ -362,6 +362,8 @@ You can distribute it as a standalone desktop app with **pyinstaller** or [**pyv
 pyinstaller -w -F  main.py
 ```
 
+[**PyCrucible**](https://github.com/razorblade23/PyCrucible) may be an alternative to pyinstaller (I haven't tried it yet.)
+
 After the command finishes move your files (templates, js,css etc) to the `dist` folder created by pyinstaller. Or add them into the executable: `pyinstaller --name your-app-name --add-data "dbsqlite:dbsqlite" --add-data "templates:templates" --add-data "static:static" --collect-all name_of_package_that_pyinstaller_did_not_found gui.py` (for Windows change `:` with `;`). 
 
 If you want your desktop application to be installed via snap or flatpack (Linux) checkout:
